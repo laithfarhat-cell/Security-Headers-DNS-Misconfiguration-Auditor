@@ -1,8 +1,8 @@
 # secaudit — Security Headers & DNS Misconfiguration Auditor
 
 [![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13-3776AB?logo=python&logoColor=white)](#requirements)
-[![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](#)
-[![Tests](https://img.shields.io/badge/tests-163%20passing-brightgreen.svg)](#development)
+[![Version](https://img.shields.io/badge/version-1.0.1-blue.svg)](#)
+[![Tests](https://img.shields.io/badge/tests-175%20passing-brightgreen.svg)](#development)
 [![Lint](https://img.shields.io/badge/lint-ruff%20clean-261230.svg)](https://docs.astral.sh/ruff/)
 [![SARIF](https://img.shields.io/badge/SARIF-2.1.0-purple.svg)](#sarif--github-code-scanning)
 [![OWASP](https://img.shields.io/badge/OWASP-Secure%20Headers-000000?logo=owasp&logoColor=white)](https://owasp.org/www-project-secure-headers/)
@@ -102,7 +102,7 @@ echo "exit code: $?"     # 1 when the posture is below the gate
 ### Sample terminal output
 
 ```text
-╭──────────────────────────────────────── secaudit v1.0.0 ─────────────────────────────────────────╮
+╭──────────────────────────────────────── secaudit v1.0.1 ─────────────────────────────────────────╮
 │  Security Headers · TLS · DNS/E-mail posture auditor                                             │
 │  1 target(s) · OWASP Secure Headers · RFC 9116 · RFC 7208 · RFC 7489 · RFC 8659 · RFC 8461       │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
@@ -398,7 +398,7 @@ dangling CNAME removal — 29 templates in total, each with a `reference` link.
 ```json
 {
   "schema_version": "1.0",
-  "tool": { "name": "secaudit", "version": "1.0.0" },
+  "tool": { "name": "secaudit", "version": "1.0.1" },
   "summary": { "targets": 1, "overall_score": 66.44, "grade": "D",
                "counts": { "CRITICAL": 1, "HIGH": 3, "MEDIUM": 4, "LOW": 5, "PASS": 16 } },
   "gate": { "fail_under": 85.0, "fail_on_severity": "critical",
@@ -462,11 +462,40 @@ A ready-to-use workflow lives at
 
 - runs **weekly** (Mondays 04:17 UTC) and on demand, with optional comma-separated
   domains as a `workflow_dispatch` input;
-- lints and unit-tests the tool first, then audits the production domains;
+- lints and unit-tests the tool on every push and pull request;
+- resolves the target list in a separate `preflight` job and **skips the audit with
+  a notice** when no domains are configured, so a fresh clone is green out of the box;
 - publishes SARIF to the **Security → Code scanning** tab;
 - renders the Markdown report into the job summary;
 - uploads all four report formats as a 30-day artifact;
 - fails the job when `--fail-under` / `--fail-on-severity` trip.
+
+**1 — Provide targets.** Copy the template and list the domains you own:
+
+```bash
+cp domains.example.txt domains.txt   # one domain per line; # comments allowed
+```
+
+`domains.txt` may also be passed ad-hoc from the *Run workflow* button
+(`domains` input). Commit it if you want the push-triggered audit, or keep it
+local and rely on the weekly schedule / dispatch input instead. Blank lines,
+CRLF endings, inline `#` comments, full URLs and duplicates are normalised
+automatically, so a hand-maintained list works as-is.
+
+**2 — Tune the gate.** Instead of editing the workflow, set repository variables
+(*Settings → Secrets and variables → Actions → Variables*):
+
+| Variable | Default | Meaning |
+| --- | --- | --- |
+| `AUDIT_FAIL_UNDER` | `85` | minimum overall score; `0` disables the score gate |
+| `AUDIT_FAIL_ON_SEVERITY` | `critical` | `critical`, `high`, `medium`, `low` or `none` |
+
+Workflow-dispatch inputs always win over the repository variables.
+
+**3 — Read the result.** Exit code `0` = gate satisfied, `1` = gate tripped
+(build fails, reports still uploaded), `2` = usage error. When no targets are
+configured the run reports `⏭️ Domain audit skipped` in the job summary and the
+workflow stays green.
 
 ```yaml
 - name: Run audit
@@ -607,7 +636,8 @@ installs the package with its `secaudit` entry point.
 ├── requirements.txt
 ├── Dockerfile                  # multi-stage, non-root runtime
 ├── .github/workflows/
-│   └── domain-audit.yml        # scheduled audit + SARIF upload + artifacts
+│   └── domain-audit.yml        # preflight + scheduled audit + SARIF upload + artifacts
+├── domains.example.txt         # target-list template (copy to domains.txt)
 ├── auditors/
 │   ├── http_auditor.py         # headers, CSP, cookies, security.txt, redirect chain
 │   ├── tls_auditor.py          # certificate, protocols, cipher, HTTPS redirect
@@ -624,7 +654,7 @@ installs the package with its `secaudit` entry point.
 │   └── default.yaml            # documented defaults
 ├── docs/samples/               # generated example reports (html/json/md/sarif)
 ├── scripts/generate_samples.py # regenerates docs/samples via the real exporters
-└── tests/                      # 163 tests: parsers, auditors, scorer, exporters, CLI
+└── tests/                      # 175 tests: parsers, auditors, scorer, exporters, CLI, workflow
 ```
 
 ---
@@ -635,7 +665,7 @@ installs the package with its `secaudit` entry point.
 python -m venv .venv && source .venv/bin/activate
 pip install -e ".[dev]"
 
-pytest -q            # 163 tests, ~1 s, no network required (MockTransport + stub resolver)
+pytest -q            # 175 tests, ~1 s, no network required (MockTransport + stub resolver)
 ruff check .         # lint (E, F, W, I, UP, B, C4)
 python scripts/generate_samples.py   # refresh docs/samples/*
 ```

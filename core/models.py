@@ -16,6 +16,8 @@ from datetime import datetime, timezone
 from enum import Enum
 from typing import Any
 
+from core import __version__
+
 
 # --------------------------------------------------------------------------------------
 # Enumerations
@@ -343,7 +345,7 @@ class AuditReport:
     """Top level report: metadata about the scan plus one entry per target."""
 
     targets: list[TargetReport] = field(default_factory=list)
-    tool_version: str = "1.0.0"
+    tool_version: str = __version__
     generated_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     duration_ms: float = 0.0
     options: dict[str, Any] = field(default_factory=dict)
