@@ -1,0 +1,438 @@
+{
+  "version": "2026.11",
+  "updated": "2026-11-15",
+  "description": "Third-party SaaS / cloud endpoints that can be claimed by an attacker when a DNS record still points at them. Used by secaudit for dangling-CNAME and subdomain-takeover detection. Suffixes are matched on a label boundary (evil-github.io does NOT match github.io).",
+  "source": "https://github.com/EdOverflow/can-i-take-over-xyz",
+  "services": [
+    {
+      "service": "GitHub Pages",
+      "provider": "GitHub",
+      "cname_suffixes": ["github.io"],
+      "claim_url": "https://github.com/settings/pages",
+      "severity": "critical",
+      "unclaimed_signatures": [
+        "There isn't a GitHub Pages site here",
+        "For root URLs (like http://example.com/) you must provide an index.html file"
+      ],
+      "notes": "Create a GitHub Pages site with the custom domain, or delete the DNS record."
+    },
+    {
+      "service": "Amazon S3",
+      "provider": "AWS",
+      "cname_suffixes": [
+        "s3.amazonaws.com",
+        "s3-website-us-east-1.amazonaws.com",
+        "s3-website-us-west-2.amazonaws.com",
+        "s3-website-eu-west-1.amazonaws.com",
+        "s3.amazonaws.com.cn"
+      ],
+      "claim_url": "https://s3.console.aws.amazon.com/s3/home",
+      "severity": "critical",
+      "unclaimed_signatures": [
+        "NoSuchBucket",
+        "The specified bucket does not exist",
+        "IllegalLocationConstraintException"
+      ],
+      "notes": "Re-create the bucket with the exact name, or remove the record. CNAMEs to unclaimed bucket names are trivially takeover-able."
+    },
+    {
+      "service": "Heroku",
+      "provider": "Salesforce",
+      "cname_suffixes": [
+        "herokuapp.com",
+        "herokudns.com",
+        "herokussl.com"
+      ],
+      "claim_url": "https://dashboard.heroku.com/apps",
+      "severity": "critical",
+      "unclaimed_signatures": [
+        "No such app",
+        "There is no app configured at that hostname",
+        "heroku | no such app"
+      ],
+      "notes": "Claim the app name in a Heroku account you control, otherwise the hostname is free for anyone."
+    },
+    {
+      "service": "Microsoft Azure App Service",
+      "provider": "Microsoft",
+      "cname_suffixes": [
+        "azurewebsites.net",
+        "cloudapp.azure.com",
+        "cloudapp.net",
+        "trafficmanager.net",
+        "azurefd.net",
+        "azurestaticapps.net",
+        "blob.core.windows.net",
+        "azure-api.net"
+      ],
+      "claim_url": "https://portal.azure.com/",
+      "severity": "critical",
+      "unclaimed_signatures": [
+        "404 Web Site not found",
+        "This site is not configured",
+        "The requested app is not available",
+        "Error 404 - Web app not found"
+      ],
+      "notes": "Azure resource names are global. An unclaimed cloudapp.net / azurewebsites.net target is claimable by anyone."
+    },
+    {
+      "service": "Shopify",
+      "provider": "Shopify",
+      "cname_suffixes": ["myshopify.com"],
+      "claim_url": "https://www.shopify.com/",
+      "severity": "high",
+      "unclaimed_signatures": [
+        "Sorry, this shop is currently unavailable",
+        "Only one step left!"
+      ],
+      "notes": "Shop domain names are first-come-first-served; an unclaimed myshopify handle can be registered by an attacker."
+    },
+    {
+      "service": "Fastly",
+      "provider": "Fastly",
+      "cname_suffixes": [
+        "fastly.net",
+        "fastlylb.net"
+      ],
+      "claim_url": "https://manage.fastly.com/",
+      "severity": "high",
+      "unclaimed_signatures": [
+        "Fastly error: unknown domain",
+        "Fastly error: unknown domain:"
+      ],
+      "notes": "Add the hostname to a Fastly service you own, or delete the DNS record."
+    },
+    {
+      "service": "Netlify",
+      "provider": "Netlify",
+      "cname_suffixes": ["netlify.app", "netlify.com"],
+      "claim_url": "https://app.netlify.com/",
+      "severity": "high",
+      "unclaimed_signatures": [
+        "Not Found - Request ID",
+        "Site not found"
+      ],
+      "notes": "Claim the site name in Netlify and add the custom domain."
+    },
+    {
+      "service": "Vercel",
+      "provider": "Vercel",
+      "cname_suffixes": [
+        "vercel.app",
+        "now.sh",
+        "vercel-dns.com"
+      ],
+      "claim_url": "https://vercel.com/dashboard",
+      "severity": "high",
+      "unclaimed_signatures": [
+        "The deployment could not be found on Vercel",
+        "DEPLOYMENT_NOT_FOUND"
+      ],
+      "notes": "Vercel project names are global; claim the project or remove the record."
+    },
+    {
+      "service": "Surge.sh",
+      "provider": "Surge",
+      "cname_suffixes": ["surge.sh"],
+      "claim_url": "https://surge.sh/",
+      "severity": "critical",
+      "unclaimed_signatures": [
+        "project not found",
+        "Project not found"
+      ],
+      "notes": "Surge projects are published by name with no ownership check beyond the name itself."
+    },
+    {
+      "service": "Pantheon",
+      "provider": "Pantheon",
+      "cname_suffixes": ["pantheonsite.io"],
+      "claim_url": "https://dashboard.pantheon.io/",
+      "severity": "high",
+      "unclaimed_signatures": [
+        "The gods are wise, but do not know of the site which you seek",
+        "404 error unknown site!"
+      ],
+      "notes": "Re-add the domain to a Pantheon site, or remove the DNS record."
+    },
+    {
+      "service": "Tumblr",
+      "provider": "Automattic",
+      "cname_suffixes": ["tumblr.com"],
+      "claim_url": "https://www.tumblr.com/",
+      "severity": "medium",
+      "unclaimed_signatures": [
+        "There's nothing here.",
+        "Whatever you were looking for doesn't currently exist at this address"
+      ],
+      "notes": "Tumblr blogs can be registered by name; an unclaimed blog leaves the custom domain dangling."
+    },
+    {
+      "service": "WordPress.com",
+      "provider": "Automattic",
+      "cname_suffixes": ["wordpress.com"],
+      "claim_url": "https://wordpress.com/",
+      "severity": "medium",
+      "unclaimed_signatures": [
+        "Do you want to register",
+        "doesn’t exist",
+        "doesn't exist"
+      ],
+      "notes": "Unclaimed *.wordpress.com subdomains can be registered by anyone with the same slug."
+    },
+    {
+      "service": "Zendesk",
+      "provider": "Zendesk",
+      "cname_suffixes": ["zendesk.com"],
+      "claim_url": "https://www.zendesk.com/",
+      "severity": "high",
+      "unclaimed_signatures": [
+        "Help Center Closed",
+        "This help center no longer exists"
+      ],
+      "notes": "Zendesk subdomains are claimed at signup; a closed help centre frees the name."
+    },
+    {
+      "service": "Freshdesk",
+      "provider": "Freshworks",
+      "cname_suffixes": ["freshdesk.com"],
+      "claim_url": "https://www.freshworks.com/",
+      "severity": "high",
+      "unclaimed_signatures": [
+        "There is no helpdesk here",
+        "Invalid URL"
+      ],
+      "notes": "Support portals are addressed by subdomain; an unclaimed one can be recreated."
+    },
+    {
+      "service": "Unbounce",
+      "provider": "Unbounce",
+      "cname_suffixes": ["unbouncepages.com"],
+      "claim_url": "https://app.unbounce.com/",
+      "severity": "medium",
+      "unclaimed_signatures": [
+        "The requested URL was not found on this server",
+        "The requested URL / was not found on this server"
+      ],
+      "notes": "Landing pages are served from unbouncepages.com; delete the domain from Unbounce before removing the page."
+    },
+    {
+      "service": "Bitbucket Cloud",
+      "provider": "Atlassian",
+      "cname_suffixes": ["bitbucket.io", "bitbucket.org"],
+      "claim_url": "https://bitbucket.org/",
+      "severity": "high",
+      "unclaimed_signatures": [
+        "Repository not found",
+        "404 Not Found"
+      ],
+      "notes": "Bitbucket static sites live on *.bitbucket.io; an unclaimed workspace name is registerable."
+    },
+    {
+      "service": "Ghost",
+      "provider": "Ghost Foundation",
+      "cname_suffixes": ["ghost.io"],
+      "claim_url": "https://ghost.org/",
+      "severity": "medium",
+      "unclaimed_signatures": [
+        "Domain error",
+        "Site not found"
+      ],
+      "notes": "Remove the custom domain from Ghost before shutting the publication down."
+    },
+    {
+      "service": "ReadMe.io",
+      "provider": "ReadMe",
+      "cname_suffixes": ["readme.io"],
+      "claim_url": "https://readme.com/",
+      "severity": "medium",
+      "unclaimed_signatures": [
+        "Project not found",
+        "The page you were looking for doesn't exist"
+      ],
+      "notes": "Documentation projects are addressed by subdomain and can be recreated by an attacker."
+    },
+    {
+      "service": "Webflow",
+      "provider": "Webflow",
+      "cname_suffixes": ["webflow.io", "proxy.webflow.com"],
+      "claim_url": "https://webflow.com/dashboard",
+      "severity": "medium",
+      "unclaimed_signatures": [
+        "This site is not published",
+        "Site not published"
+      ],
+      "notes": "Publish or re-claim the Webflow project, or delete the DNS record."
+    },
+    {
+      "service": "Statuspage.io",
+      "provider": "Atlassian",
+      "cname_suffixes": ["statuspage.io"],
+      "claim_url": "https://www.statuspage.io/",
+      "severity": "medium",
+      "unclaimed_signatures": [
+        "The page you were looking for doesn't exist",
+        "Page not found"
+      ],
+      "notes": "Status pages are addressed by subdomain; cancelled accounts free the subdomain."
+    },
+    {
+      "service": "Canny",
+      "provider": "Canny",
+      "cname_suffixes": ["canny.io"],
+      "claim_url": "https://canny.io/",
+      "severity": "medium",
+      "unclaimed_signatures": [
+        "Company Not Found",
+        "Company not found"
+      ],
+      "notes": "Feedback boards are addressed by subdomain and can be recreated."
+    },
+    {
+      "service": "UserVoice",
+      "provider": "UserVoice",
+      "cname_suffixes": ["uservoice.com"],
+      "claim_url": "https://www.uservoice.com/",
+      "severity": "medium",
+      "unclaimed_signatures": [
+        "This UserVoice subdomain is currently available!"
+      ],
+      "notes": "UserVoice explicitly announces available subdomains — a direct takeover indicator."
+    },
+    {
+      "service": "Helpjuice",
+      "provider": "Helpjuice",
+      "cname_suffixes": ["helpjuice.com"],
+      "claim_url": "https://helpjuice.com/",
+      "severity": "medium",
+      "unclaimed_signatures": [
+        "This help center is not currently available",
+        "This help center is not available"
+      ],
+      "notes": "Knowledge bases are addressed by subdomain; delete the domain in Helpjuice before cancelling."
+    },
+    {
+      "service": "Kinsta",
+      "provider": "Kinsta",
+      "cname_suffixes": ["kinsta.cloud"],
+      "claim_url": "https://my.kinsta.com/",
+      "severity": "medium",
+      "unclaimed_signatures": [
+        "No site found for this domain",
+        "Site not found"
+      ],
+      "notes": "Remove the custom domain from the Kinsta environment before deleting the site."
+    },
+    {
+      "service": "Acquia Cloud",
+      "provider": "Acquia",
+      "cname_suffixes": ["acquia-sites.com", "acsitefactory.com"],
+      "claim_url": "https://cloud.acquia.com/",
+      "severity": "medium",
+      "unclaimed_signatures": [
+        "The site you are looking for could not be found",
+        "Site not found"
+      ],
+      "notes": "Acquia sites are addressed by technical domain; remove the DNS record when decommissioning."
+    },
+    {
+      "service": "DigitalOcean Spaces",
+      "provider": "DigitalOcean",
+      "cname_suffixes": [
+        "digitaloceanspaces.com",
+        "ondigitalocean.app"
+      ],
+      "claim_url": "https://cloud.digitalocean.com/",
+      "severity": "high",
+      "unclaimed_signatures": [
+        "Domain not found",
+        "The specified bucket does not exist",
+        "NoSuchBucket"
+      ],
+      "notes": "Spaces and App Platform apps use global names; re-create or remove the record."
+    },
+    {
+      "service": "Google Cloud Storage",
+      "provider": "Google Cloud",
+      "cname_suffixes": ["storage.googleapis.com", "commondatastorage.googleapis.com"],
+      "claim_url": "https://console.cloud.google.com/storage",
+      "severity": "critical",
+      "unclaimed_signatures": [
+        "NoSuchBucket",
+        "The specified bucket does not exist."
+      ],
+      "notes": "GCS bucket names are global; a deleted bucket name can be claimed by anyone."
+    },
+    {
+      "service": "Firebase Hosting",
+      "provider": "Google",
+      "cname_suffixes": ["web.app", "firebaseapp.com"],
+      "claim_url": "https://console.firebase.google.com/",
+      "severity": "medium",
+      "unclaimed_signatures": [
+        "Site Not Found",
+        "Site not found"
+      ],
+      "notes": "Firebase site IDs are global; claim the site or delete the DNS record."
+    },
+    {
+      "service": "Google App Engine / Cloud Run",
+      "provider": "Google Cloud",
+      "cname_suffixes": ["appspot.com", "run.app", "a.run.app"],
+      "claim_url": "https://console.cloud.google.com/",
+      "severity": "medium",
+      "unclaimed_signatures": [
+        "404 Not Found",
+        "The requested URL was not found on this server"
+      ],
+      "notes": "App Engine application IDs are global and cannot be re-created after deletion — remove stale DNS."
+    },
+    {
+      "service": "Cargo Collective",
+      "provider": "Cargo",
+      "cname_suffixes": ["cargocollective.com"],
+      "claim_url": "https://cargo.site/",
+      "severity": "medium",
+      "unclaimed_signatures": [
+        "404 Not Found",
+        "Page not found"
+      ],
+      "notes": "Cargo sites are addressed by subdomain; unclaimed names are available to anyone."
+    },
+    {
+      "service": "Big Cartel",
+      "provider": "Big Cartel",
+      "cname_suffixes": ["bigcartel.com"],
+      "claim_url": "https://www.bigcartel.com/",
+      "severity": "medium",
+      "unclaimed_signatures": [
+        "This shop is not currently available",
+        "Page not found"
+      ],
+      "notes": "Store subdomains are first-come-first-served."
+    },
+    {
+      "service": "Instapage",
+      "provider": "Instapage",
+      "cname_suffixes": ["instapage.com", "pageserve.co"],
+      "claim_url": "https://app.instapage.com/",
+      "severity": "medium",
+      "unclaimed_signatures": [
+        "Page not found",
+        "404 Not Found"
+      ],
+      "notes": "Remove the custom domain from Instapage before deleting the landing page."
+    },
+    {
+      "service": "SendGrid",
+      "provider": "Twilio",
+      "cname_suffixes": ["sendgrid.net"],
+      "claim_url": "https://app.sendgrid.com/",
+      "severity": "high",
+      "unclaimed_signatures": [
+        "This is a SendGrid-branded domain",
+        "The page you are looking for doesn't exist"
+      ],
+      "notes": "Email link-tracking CNAMEs are frequently left behind after a SendGrid account is closed."
+    }
+  ]
+}

@@ -1,0 +1,61 @@
+# ---- Python ------------------------------------------------------------------
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+dist/
+develop-eggs/
+eggs/
+.eggs/
+sdist/
+wheels/
+*.egg-info/
+*.egg
+pip-wheel-metadata/
+MANIFEST
+.installed.cfg
+
+# ---- Virtual environments ----------------------------------------------------
+.venv/
+venv/
+env/
+ENV/
+.python-version
+
+# ---- Tooling / caches --------------------------------------------------------
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.tox/
+.nox/
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+.cache/
+.ipynb_checkpoints/
+
+# ---- IDE / OS ----------------------------------------------------------------
+.idea/
+.vscode/
+*.swp
+.DS_Store
+Thumbs.db
+
+# ---- secaudit outputs --------------------------------------------------------
+reports/
+*.sarif
+audit.json
+audit.md
+audit.html
+report.html
+!docs/samples/*.sarif
+
+# ---- Secrets / local config --------------------------------------------------
+.env
+.env.*
+*.pem
+*.key
+myconfig.yaml

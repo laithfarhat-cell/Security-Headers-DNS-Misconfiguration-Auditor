@@ -1,0 +1,148 @@
+name: Domain Security Audit
+
+# Continuous security-posture monitoring for the domains you own.
+# Copy this workflow into your repository, put your domains in domains.txt and
+# it will audit them weekly, publish a report artifact and push SARIF results
+# into the GitHub Security tab (Code Scanning).
+
+on:
+  schedule:
+    # Every Monday at 04:17 UTC — off the hour to avoid CI peaks.
+    - cron: "17 4 * * 1"
+  workflow_dispatch:
+    inputs:
+      domains:
+        description: "Comma separated domains (overrides domains.txt)"
+        required: false
+        default: ""
+      fail_under:
+        description: "Minimum overall score (0 disables the gate)"
+        required: false
+        default: "85"
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/domain-audit.yml"
+      - "domains.txt"
+      - "main.py"
+      - "auditors/**"
+      - "core/**"
+      - "reporters/**"
+
+permissions:
+  contents: read
+  security-events: write # required for the SARIF upload
+  actions: read
+
+concurrency:
+  group: domain-audit-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  FAIL_UNDER: ${{ github.event.inputs.fail_under || '85' }}
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # 1. Lint + unit tests for the auditor itself.
+  # ---------------------------------------------------------------------------
+  quality:
+    name: Lint & unit tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: |
+            pyproject.toml
+            requirements.txt
+
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+
+      - name: Ruff
+        run: ruff check .
+
+      - name: Pytest
+        run: pytest -q
+
+  # ---------------------------------------------------------------------------
+  # 2. Audit the production domains.
+  # ---------------------------------------------------------------------------
+  audit:
+    name: Audit domains
+    needs: quality
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: |
+            pyproject.toml
+            requirements.txt
+
+      - name: Install secaudit
+        run: |
+          python -m pip install --upgrade pip
+          pip install .
+
+      - name: Resolve target list
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -n "${{ github.event.inputs.domains }}" ]; then
+            tr ',' '\n' <<< "${{ github.event.inputs.domains }}" \
+              | sed 's/^[[:space:]]*//; s/[[:space:]]*$//' \
+              | grep -v '^$' > domains.txt
+          fi
+          if [ ! -s domains.txt ]; then
+            echo "::error::No targets. Add domains.txt or pass the 'domains' input."
+            exit 1
+          fi
+          echo "Auditing:"; sed 's/^/  - /' domains.txt
+
+      - name: Run audit
+        # The step fails on purpose when the quality gate is not met; the
+        # reporting steps below still run so the team always gets the evidence.
+        run: |
+          secaudit \
+            -iL domains.txt \
+            --nameserver 1.1.1.1 \
+            --nameserver 8.8.8.8 \
+            -c 15 \
+            --timeout 10 \
+            --fail-under "$FAIL_UNDER" \
+            --fail-on-severity critical \
+            -oJ reports/audit.json \
+            -oS reports/secaudit.sarif \
+            -oM reports/audit.md \
+            -oH reports/audit.html
+
+      - name: Publish SARIF to the Security tab
+        if: always() && hashFiles('reports/secaudit.sarif') != ''
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: reports/secaudit.sarif
+          category: secaudit-domain-posture
+
+      - name: Job summary
+        if: always() && hashFiles('reports/audit.md') != ''
+        run: cat reports/audit.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload reports
+        if: always() && hashFiles('reports/**') != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-audit-${{ github.run_number }}
+          path: reports/
+          retention-days: 30
+          if-no-files-found: warn

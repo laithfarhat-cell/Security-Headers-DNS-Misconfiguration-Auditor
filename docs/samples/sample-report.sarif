@@ -1,0 +1,823 @@
+{
+  "$schema": "https://json.schemastore.org/sarif-2.1.0.json",
+  "version": "2.1.0",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "secaudit",
+          "fullName": "secaudit — Security Headers & DNS Misconfiguration Auditor",
+          "semanticVersion": "1.0.0",
+          "informationUri": "https://github.com/laithfarhat-cell/Security-Headers-DNS-Misconfiguration-Auditor",
+          "rules": [
+            {
+              "id": "dns.cname.dangling",
+              "name": "DnsCnameDangling",
+              "shortDescription": {
+                "text": "Dangling CNAME to a non-existent host (GitHub Pages)"
+              },
+              "fullDescription": {
+                "text": "status.example.com is a CNAME to status-old.github.io, which does not resolve (NXDOMAIN). Whoever registers that endpoint inherits your hostname — remove or repoint the record."
+              },
+              "help": {
+                "text": "**Dangling CNAME to a non-existent host (GitHub Pages)**\n\nstatus.example.com is a CNAME to status-old.github.io, which does not resolve (NXDOMAIN). Whoever registers that endpoint inherits your hostname — remove or repoint the record.\n\nObserved: `status.example.com CNAME status-old.github.io → NXDOMAIN`\n\n### Remediation\nA CNAME points at a third-party endpoint that no longer exists — an attacker can often claim it and serve content on your domain.  Remove or repoint the record, or re-claim the service.\n\n**Cloudflare**\n```\nDNS → Records → delete or repoint the dangling CNAME, then purge the edge cache.\n```\n\n**DNS**\n```\nexample.com.   IN CNAME   <active-provider-endpoint>\n# or delete the record entirely:\n# dig +short example.com CNAME  # confirm the chain is gone\n```\n\n### References\n- https://owasp.org/www-project-secure-headers/",
+                "markdown": "**Dangling CNAME to a non-existent host (GitHub Pages)**\n\nstatus.example.com is a CNAME to status-old.github.io, which does not resolve (NXDOMAIN). Whoever registers that endpoint inherits your hostname — remove or repoint the record.\n\nObserved: `status.example.com CNAME status-old.github.io → NXDOMAIN`\n\n### Remediation\nA CNAME points at a third-party endpoint that no longer exists — an attacker can often claim it and serve content on your domain.  Remove or repoint the record, or re-claim the service.\n\n**Cloudflare**\n```\nDNS → Records → delete or repoint the dangling CNAME, then purge the edge cache.\n```\n\n**DNS**\n```\nexample.com.   IN CNAME   <active-provider-endpoint>\n# or delete the record entirely:\n# dig +short example.com CNAME  # confirm the chain is gone\n```\n\n### References\n- https://owasp.org/www-project-secure-headers/"
+              },
+              "helpUri": "https://owasp.org/www-project-secure-headers/",
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "dns_email",
+                  "critical"
+                ],
+                "precision": "high",
+                "security-severity": "9.5",
+                "category": "DNS / Email"
+              }
+            },
+            {
+              "id": "dns.spf.lookups",
+              "name": "DnsSpfLookups",
+              "shortDescription": {
+                "text": "SPF exceeds the 10-lookup limit (12)"
+              },
+              "fullDescription": {
+                "text": "RFC 7208 caps a policy evaluation at 10 DNS lookups; exceeding it returns permerror and receivers ignore the record, re-enabling spoofing."
+              },
+              "help": {
+                "text": "**SPF exceeds the 10-lookup limit (12)**\n\nRFC 7208 caps a policy evaluation at 10 DNS lookups; exceeding it returns permerror and receivers ignore the record, re-enabling spoofing.\n\nObserved: `12 lookups: include:_spf.google.com; include:mail.zendesk.com; …`\n\n### Remediation\nPublish exactly one SPF record per domain, end it with -all (hard fail), keep the DNS-lookup count at or below 10 and remove deprecated mechanisms such as ptr.\n\n**DNS**\n```\nexample.com.        TXT  \"v=spf1 mx include:_spf.example-provider.com -all\"\n# count lookups first:  https://www.kitterman.com/spf/validate.html\n# >10 lookups? flatten includes or split transactional mail onto a subdomain:\nmail.example.com.   TXT  \"v=spf1 include:_spf.example-provider.com -all\"\n```\n\n### References\n- https://owasp.org/www-project-secure-headers/",
+                "markdown": "**SPF exceeds the 10-lookup limit (12)**\n\nRFC 7208 caps a policy evaluation at 10 DNS lookups; exceeding it returns permerror and receivers ignore the record, re-enabling spoofing.\n\nObserved: `12 lookups: include:_spf.google.com; include:mail.zendesk.com; …`\n\n### Remediation\nPublish exactly one SPF record per domain, end it with -all (hard fail), keep the DNS-lookup count at or below 10 and remove deprecated mechanisms such as ptr.\n\n**DNS**\n```\nexample.com.        TXT  \"v=spf1 mx include:_spf.example-provider.com -all\"\n# count lookups first:  https://www.kitterman.com/spf/validate.html\n# >10 lookups? flatten includes or split transactional mail onto a subdomain:\nmail.example.com.   TXT  \"v=spf1 include:_spf.example-provider.com -all\"\n```\n\n### References\n- https://owasp.org/www-project-secure-headers/"
+              },
+              "helpUri": "https://owasp.org/www-project-secure-headers/",
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "dns_email",
+                  "high"
+                ],
+                "precision": "high",
+                "security-severity": "8.0",
+                "category": "DNS / Email"
+              }
+            },
+            {
+              "id": "http.cookies.secure",
+              "name": "HttpCookiesSecure",
+              "shortDescription": {
+                "text": "Cookies are missing the Secure flag"
+              },
+              "fullDescription": {
+                "text": "Cookies without Secure are transmitted over plaintext HTTP and can be captured by any on-path attacker. Session cookies must be Secure."
+              },
+              "help": {
+                "text": "**Cookies are missing the Secure flag**\n\nCookies without Secure are transmitted over plaintext HTTP and can be captured by any on-path attacker. Session cookies must be Secure.\n\nObserved: `1/3 cookie(s) without Secure: cart`\n\n### Remediation\nEvery session cookie needs Secure + HttpOnly + SameSite.  Use the __Host- prefix (requires Secure, Path=/ and no Domain attribute) for authentication cookies.\n\n**Nginx**\n```\n# nginx ≥ 1.19.3 – rewrite flags on all proxied cookies\nproxy_cookie_flags ~ secure httponly samesite=strict;\n```\n\n**Apache**\n```\n# mod_headers – append the flags if missing\nHeader edit Set-Cookie ^(.*)$ \"$1; Secure; HttpOnly; SameSite=Lax\"\n```\n\n**Cloudflare**\n```\nCloudflare cannot rewrite Set-Cookie; fix it at the origin or in the application framework.\n```\n\n### References\n- https://owasp.org/www-project-secure-headers/",
+                "markdown": "**Cookies are missing the Secure flag**\n\nCookies without Secure are transmitted over plaintext HTTP and can be captured by any on-path attacker. Session cookies must be Secure.\n\nObserved: `1/3 cookie(s) without Secure: cart`\n\n### Remediation\nEvery session cookie needs Secure + HttpOnly + SameSite.  Use the __Host- prefix (requires Secure, Path=/ and no Domain attribute) for authentication cookies.\n\n**Nginx**\n```\n# nginx ≥ 1.19.3 – rewrite flags on all proxied cookies\nproxy_cookie_flags ~ secure httponly samesite=strict;\n```\n\n**Apache**\n```\n# mod_headers – append the flags if missing\nHeader edit Set-Cookie ^(.*)$ \"$1; Secure; HttpOnly; SameSite=Lax\"\n```\n\n**Cloudflare**\n```\nCloudflare cannot rewrite Set-Cookie; fix it at the origin or in the application framework.\n```\n\n### References\n- https://owasp.org/www-project-secure-headers/"
+              },
+              "helpUri": "https://owasp.org/www-project-secure-headers/",
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "http_headers",
+                  "high"
+                ],
+                "precision": "high",
+                "security-severity": "8.0",
+                "category": "HTTP Headers"
+              }
+            },
+            {
+              "id": "tls.protocol.tls1_0",
+              "name": "TlsProtocolTls1_0",
+              "shortDescription": {
+                "text": "Deprecated TLSv1.0 is supported"
+              },
+              "fullDescription": {
+                "text": "TLSv1.0 is deprecated by RFC 8996 and vulnerable to a long list of downgrade and padding-oracle attacks. Disable it and require TLS 1.2+."
+              },
+              "help": {
+                "text": "**Deprecated TLSv1.0 is supported**\n\nTLSv1.0 is deprecated by RFC 8996 and vulnerable to a long list of downgrade and padding-oracle attacks. Disable it and require TLS 1.2+.\n\nObserved: `TLSv1.0: accepted`\n\n### Remediation\nDisable TLS 1.0 and TLS 1.1 (deprecated by RFC 8996) and allow only TLS 1.2/1.3 with modern cipher suites.\n\n**Nginx**\n```\nssl_protocols TLSv1.2 TLSv1.3;\nssl_prefer_server_ciphers off;\nssl_ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305;\n```\n\n**Apache**\n```\nSSLProtocol -all +TLSv1.2 +TLSv1.3\nSSLCipherSuite ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384\nSSLHonorCipherOrder off\n```\n\n**Cloudflare**\n```\nSSL/TLS → Edge Certificates → Minimum TLS Version: TLS 1.2 (or TLS 1.3).\n```\n\n### References\n- https://owasp.org/www-project-secure-headers/",
+                "markdown": "**Deprecated TLSv1.0 is supported**\n\nTLSv1.0 is deprecated by RFC 8996 and vulnerable to a long list of downgrade and padding-oracle attacks. Disable it and require TLS 1.2+.\n\nObserved: `TLSv1.0: accepted`\n\n### Remediation\nDisable TLS 1.0 and TLS 1.1 (deprecated by RFC 8996) and allow only TLS 1.2/1.3 with modern cipher suites.\n\n**Nginx**\n```\nssl_protocols TLSv1.2 TLSv1.3;\nssl_prefer_server_ciphers off;\nssl_ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305;\n```\n\n**Apache**\n```\nSSLProtocol -all +TLSv1.2 +TLSv1.3\nSSLCipherSuite ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384\nSSLHonorCipherOrder off\n```\n\n**Cloudflare**\n```\nSSL/TLS → Edge Certificates → Minimum TLS Version: TLS 1.2 (or TLS 1.3).\n```\n\n### References\n- https://owasp.org/www-project-secure-headers/"
+              },
+              "helpUri": "https://owasp.org/www-project-secure-headers/",
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "tls",
+                  "high"
+                ],
+                "precision": "high",
+                "security-severity": "8.0",
+                "category": "TLS"
+              }
+            },
+            {
+              "id": "dns.dmarc.policy",
+              "name": "DnsDmarcPolicy",
+              "shortDescription": {
+                "text": "DMARC policy is monitor-only (p=none)"
+              },
+              "fullDescription": {
+                "text": "p=none requests reports but tells receivers to deliver failing mail, so spoofing still reaches inboxes. Move to quarantine then reject."
+              },
+              "help": {
+                "text": "**DMARC policy is monitor-only (p=none)**\n\np=none requests reports but tells receivers to deliver failing mail, so spoofing still reaches inboxes. Move to quarantine then reject.\n\nObserved: `v=DMARC1; p=none; rua=mailto:dmarc@example.com`\n\n### Remediation\nPublish a DMARC record with p=quarantine or p=reject and rua reporting so you can detect spoofing attempts and receive aggregate reports.\n\n**Cloudflare**\n```\nCloudflare Email Security / DNS → add the TXT record at _dmarc.example.com. Keep Email Routing's own SPF/DKIM records intact.\n```\n\n**DNS**\n```\n_dmarc.example.com.  TXT  \"v=DMARC1; p=reject; sp=reject; adkim=s; aspf=s; pct=100; fo=1; rua=mailto:dmarc-reports@example.com; ruf=mailto:dmarc-forensics@example.com\"\n# rollout: start with p=none, review rua reports for 2-4 weeks, then move to p=quarantine and finally p=reject\n```\n\n### References\n- https://owasp.org/www-project-secure-headers/",
+                "markdown": "**DMARC policy is monitor-only (p=none)**\n\np=none requests reports but tells receivers to deliver failing mail, so spoofing still reaches inboxes. Move to quarantine then reject.\n\nObserved: `v=DMARC1; p=none; rua=mailto:dmarc@example.com`\n\n### Remediation\nPublish a DMARC record with p=quarantine or p=reject and rua reporting so you can detect spoofing attempts and receive aggregate reports.\n\n**Cloudflare**\n```\nCloudflare Email Security / DNS → add the TXT record at _dmarc.example.com. Keep Email Routing's own SPF/DKIM records intact.\n```\n\n**DNS**\n```\n_dmarc.example.com.  TXT  \"v=DMARC1; p=reject; sp=reject; adkim=s; aspf=s; pct=100; fo=1; rua=mailto:dmarc-reports@example.com; ruf=mailto:dmarc-forensics@example.com\"\n# rollout: start with p=none, review rua reports for 2-4 weeks, then move to p=quarantine and finally p=reject\n```\n\n### References\n- https://owasp.org/www-project-secure-headers/"
+              },
+              "helpUri": "https://owasp.org/www-project-secure-headers/",
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "dns_email",
+                  "medium"
+                ],
+                "precision": "high",
+                "security-severity": "5.5",
+                "category": "DNS / Email"
+              }
+            },
+            {
+              "id": "http.csp.unsafe_inline",
+              "name": "HttpCspUnsafe_inline",
+              "shortDescription": {
+                "text": "CSP allows 'unsafe-inline' for scripts"
+              },
+              "fullDescription": {
+                "text": "'unsafe-inline' re-enables inline <script> execution, which neutralises most of CSP's XSS protection. Replace inline handlers with nonces or hashes."
+              },
+              "help": {
+                "text": "**CSP allows 'unsafe-inline' for scripts**\n\n'unsafe-inline' re-enables inline <script> execution, which neutralises most of CSP's XSS protection. Replace inline handlers with nonces or hashes.\n\nObserved: `script-src 'self' 'unsafe-inline' https://cdn.example.net`\n\n### Remediation\nDeploy a restrictive Content-Security-Policy built from a nonce or hash based script-src, drop 'unsafe-inline'/'unsafe-eval', and lock down framing with frame-ancestors.  Roll it out with Content-Security-Policy-Report-Only first.\n\n**Nginx**\n```\nadd_header Content-Security-Policy \"default-src 'self'; script-src 'self' 'nonce-$request_id'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'self'; form-action 'self'; upgrade-insecure-requests\" always;\n```\n\n**Apache**\n```\n<IfModule mod_headers.c>\n    Header always set Content-Security-Policy \"default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'self'; frame-ancestors 'self'; form-action 'self'\"\n</IfModule>\n```\n\n**Cloudflare**\n```\nCloudflare does not synthesise a CSP. Inject it with a Transform Rule (Modify Response Header → Set → Content-Security-Policy) or at your origin.\n```\n\n### References\n- https://owasp.org/www-project-secure-headers/",
+                "markdown": "**CSP allows 'unsafe-inline' for scripts**\n\n'unsafe-inline' re-enables inline <script> execution, which neutralises most of CSP's XSS protection. Replace inline handlers with nonces or hashes.\n\nObserved: `script-src 'self' 'unsafe-inline' https://cdn.example.net`\n\n### Remediation\nDeploy a restrictive Content-Security-Policy built from a nonce or hash based script-src, drop 'unsafe-inline'/'unsafe-eval', and lock down framing with frame-ancestors.  Roll it out with Content-Security-Policy-Report-Only first.\n\n**Nginx**\n```\nadd_header Content-Security-Policy \"default-src 'self'; script-src 'self' 'nonce-$request_id'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'self'; form-action 'self'; upgrade-insecure-requests\" always;\n```\n\n**Apache**\n```\n<IfModule mod_headers.c>\n    Header always set Content-Security-Policy \"default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'self'; frame-ancestors 'self'; form-action 'self'\"\n</IfModule>\n```\n\n**Cloudflare**\n```\nCloudflare does not synthesise a CSP. Inject it with a Transform Rule (Modify Response Header → Set → Content-Security-Policy) or at your origin.\n```\n\n### References\n- https://owasp.org/www-project-secure-headers/"
+              },
+              "helpUri": "https://owasp.org/www-project-secure-headers/",
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "http_headers",
+                  "medium"
+                ],
+                "precision": "high",
+                "security-severity": "5.5",
+                "category": "HTTP Headers"
+              }
+            },
+            {
+              "id": "http.hsts.max_age_short",
+              "name": "HttpHstsMax_age_short",
+              "shortDescription": {
+                "text": "HSTS max-age is shorter than 31536000 seconds"
+              },
+              "fullDescription": {
+                "text": "A short HSTS lifetime leaves visitors unprotected between policy expiry and renewal. Use at least one year (31536000)."
+              },
+              "help": {
+                "text": "**HSTS max-age is shorter than 31536000 seconds**\n\nA short HSTS lifetime leaves visitors unprotected between policy expiry and renewal. Use at least one year (31536000).\n\nObserved: `max-age=86400 (1.0 days)`\n\n### Remediation\nSend Strict-Transport-Security on every HTTPS response with a max-age of at least one year, includeSubDomains and (once you are confident) preload. HSTS closes the SSL-stripping window for returning visitors.\n\n**Nginx**\n```\nadd_header Strict-Transport-Security \"max-age=31536000; includeSubDomains; preload\" always;\n```\n\n**Apache**\n```\n<IfModule mod_headers.c>\n    Header always set Strict-Transport-Security \"max-age=31536000; includeSubDomains; preload\"\n</IfModule>\n```\n\n**Cloudflare**\n```\nSSL/TLS → Edge Certificates → HSTS: enable, Max-Age 12 months, Include subdomains = On, Preload = On, No-Sniff header = On.\n```\n\n### References\n- https://owasp.org/www-project-secure-headers/",
+                "markdown": "**HSTS max-age is shorter than 31536000 seconds**\n\nA short HSTS lifetime leaves visitors unprotected between policy expiry and renewal. Use at least one year (31536000).\n\nObserved: `max-age=86400 (1.0 days)`\n\n### Remediation\nSend Strict-Transport-Security on every HTTPS response with a max-age of at least one year, includeSubDomains and (once you are confident) preload. HSTS closes the SSL-stripping window for returning visitors.\n\n**Nginx**\n```\nadd_header Strict-Transport-Security \"max-age=31536000; includeSubDomains; preload\" always;\n```\n\n**Apache**\n```\n<IfModule mod_headers.c>\n    Header always set Strict-Transport-Security \"max-age=31536000; includeSubDomains; preload\"\n</IfModule>\n```\n\n**Cloudflare**\n```\nSSL/TLS → Edge Certificates → HSTS: enable, Max-Age 12 months, Include subdomains = On, Preload = On, No-Sniff header = On.\n```\n\n### References\n- https://owasp.org/www-project-secure-headers/"
+              },
+              "helpUri": "https://owasp.org/www-project-secure-headers/",
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "http_headers",
+                  "medium"
+                ],
+                "precision": "high",
+                "security-severity": "5.5",
+                "category": "HTTP Headers"
+              }
+            },
+            {
+              "id": "tls.expiry",
+              "name": "TlsExpiry",
+              "shortDescription": {
+                "text": "TLS certificate expires in 22.5 days"
+              },
+              "fullDescription": {
+                "text": "Certificates must be renewed before they expire; automate renewal and alert at 30 days."
+              },
+              "help": {
+                "text": "**TLS certificate expires in 22.5 days**\n\nCertificates must be renewed before they expire; automate renewal and alert at 30 days.\n\nObserved: `notAfter=2026-12-08 (22.5 days remaining)`\n\n### Remediation\nRenew the leaf certificate before it expires and monitor the remaining lifetime (alert at 30 days, page at 14).  Automate renewal with ACME.\n\n**Nginx**\n```\n# certbot\ncertbot renew --quiet --deploy-hook \"nginx -s reload\"\n# cron: 0 3 * * * certbot renew --quiet --deploy-hook \"systemctl reload nginx\"\n```\n\n**Apache**\n```\ncertbot renew --quiet --deploy-hook \"systemctl reload apache2\"\n```\n\n**Cloudflare**\n```\nCloudflare managed certificates renew automatically – verify Edge Certificates shows an active cert.\n```\n\n### References\n- https://owasp.org/www-project-secure-headers/",
+                "markdown": "**TLS certificate expires in 22.5 days**\n\nCertificates must be renewed before they expire; automate renewal and alert at 30 days.\n\nObserved: `notAfter=2026-12-08 (22.5 days remaining)`\n\n### Remediation\nRenew the leaf certificate before it expires and monitor the remaining lifetime (alert at 30 days, page at 14).  Automate renewal with ACME.\n\n**Nginx**\n```\n# certbot\ncertbot renew --quiet --deploy-hook \"nginx -s reload\"\n# cron: 0 3 * * * certbot renew --quiet --deploy-hook \"systemctl reload nginx\"\n```\n\n**Apache**\n```\ncertbot renew --quiet --deploy-hook \"systemctl reload apache2\"\n```\n\n**Cloudflare**\n```\nCloudflare managed certificates renew automatically – verify Edge Certificates shows an active cert.\n```\n\n### References\n- https://owasp.org/www-project-secure-headers/"
+              },
+              "helpUri": "https://owasp.org/www-project-secure-headers/",
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "tls",
+                  "medium"
+                ],
+                "precision": "high",
+                "security-severity": "5.5",
+                "category": "TLS"
+              }
+            },
+            {
+              "id": "dns.dnssec.missing",
+              "name": "DnsDnssecMissing",
+              "shortDescription": {
+                "text": "DNSSEC is not enabled"
+              },
+              "fullDescription": {
+                "text": "Unsigned zones are vulnerable to cache-poisoning and forged DNS answers on the resolution path."
+              },
+              "help": {
+                "text": "**DNSSEC is not enabled**\n\nUnsigned zones are vulnerable to cache-poisoning and forged DNS answers on the resolution path.\n\nObserved: `DNSKEY: none; DS: none`\n\n### Remediation\nEnable DNSSEC so resolvers can cryptographically validate your zone: publish DNSKEY/RRSIG in the zone and the matching DS record at the registrar/parent.\n\n**Cloudflare**\n```\nDNS → Settings → DNSSEC → Enable DNSSEC, then add the DS record at your registrar.\n```\n\n**DNS**\n```\n# after enabling DNSSEC at the provider, publish the DS record at the parent:\nexample.com.  IN DS  <keytag> <algorithm> <digest-type> <digest>\n# verify:  dig +dnssec DNSKEY example.com  /  dig +trace DS example.com\n```\n\n### References\n- https://owasp.org/www-project-secure-headers/",
+                "markdown": "**DNSSEC is not enabled**\n\nUnsigned zones are vulnerable to cache-poisoning and forged DNS answers on the resolution path.\n\nObserved: `DNSKEY: none; DS: none`\n\n### Remediation\nEnable DNSSEC so resolvers can cryptographically validate your zone: publish DNSKEY/RRSIG in the zone and the matching DS record at the registrar/parent.\n\n**Cloudflare**\n```\nDNS → Settings → DNSSEC → Enable DNSSEC, then add the DS record at your registrar.\n```\n\n**DNS**\n```\n# after enabling DNSSEC at the provider, publish the DS record at the parent:\nexample.com.  IN DS  <keytag> <algorithm> <digest-type> <digest>\n# verify:  dig +dnssec DNSKEY example.com  /  dig +trace DS example.com\n```\n\n### References\n- https://owasp.org/www-project-secure-headers/"
+              },
+              "helpUri": "https://owasp.org/www-project-secure-headers/",
+              "defaultConfiguration": {
+                "level": "note"
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "dns_email",
+                  "low"
+                ],
+                "precision": "high",
+                "security-severity": "3.0",
+                "category": "DNS / Email"
+              }
+            },
+            {
+              "id": "dns.spf.all",
+              "name": "DnsSpfAll",
+              "shortDescription": {
+                "text": "SPF policy soft-fails (~all)"
+              },
+              "fullDescription": {
+                "text": "SoftFail lets receivers accept the message but mark it as suspicious; move to -all once all legitimate senders are listed."
+              },
+              "help": {
+                "text": "**SPF policy soft-fails (~all)**\n\nSoftFail lets receivers accept the message but mark it as suspicious; move to -all once all legitimate senders are listed.\n\nObserved: `v=spf1 include:_spf.google.com include:mail.zendesk.com ~all`\n\n### Remediation\nPublish exactly one SPF record per domain, end it with -all (hard fail), keep the DNS-lookup count at or below 10 and remove deprecated mechanisms such as ptr.\n\n**DNS**\n```\nexample.com.        TXT  \"v=spf1 mx include:_spf.example-provider.com -all\"\n# count lookups first:  https://www.kitterman.com/spf/validate.html\n# >10 lookups? flatten includes or split transactional mail onto a subdomain:\nmail.example.com.   TXT  \"v=spf1 include:_spf.example-provider.com -all\"\n```\n\n### References\n- https://owasp.org/www-project-secure-headers/",
+                "markdown": "**SPF policy soft-fails (~all)**\n\nSoftFail lets receivers accept the message but mark it as suspicious; move to -all once all legitimate senders are listed.\n\nObserved: `v=spf1 include:_spf.google.com include:mail.zendesk.com ~all`\n\n### Remediation\nPublish exactly one SPF record per domain, end it with -all (hard fail), keep the DNS-lookup count at or below 10 and remove deprecated mechanisms such as ptr.\n\n**DNS**\n```\nexample.com.        TXT  \"v=spf1 mx include:_spf.example-provider.com -all\"\n# count lookups first:  https://www.kitterman.com/spf/validate.html\n# >10 lookups? flatten includes or split transactional mail onto a subdomain:\nmail.example.com.   TXT  \"v=spf1 include:_spf.example-provider.com -all\"\n```\n\n### References\n- https://owasp.org/www-project-secure-headers/"
+              },
+              "helpUri": "https://owasp.org/www-project-secure-headers/",
+              "defaultConfiguration": {
+                "level": "note"
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "dns_email",
+                  "low"
+                ],
+                "precision": "high",
+                "security-severity": "3.0",
+                "category": "DNS / Email"
+              }
+            },
+            {
+              "id": "http.header.server",
+              "name": "HttpHeaderServer",
+              "shortDescription": {
+                "text": "Server header discloses software version"
+              },
+              "fullDescription": {
+                "text": "Version banners let attackers map the target to known CVEs; hide the token and patch promptly."
+              },
+              "help": {
+                "text": "**Server header discloses software version**\n\nVersion banners let attackers map the target to known CVEs; hide the token and patch promptly.\n\nObserved: `Server: nginx/1.18.0`\n\n### Remediation\nRemove version banners from Server, X-Powered-By and X-AspNet-Version.  Banner grabbing is the first step of most targeted exploitation playbooks.\n\n**Nginx**\n```\n# nginx.conf (http block)\nserver_tokens off;\nmore_clear_headers Server X-Powered-By X-AspNet-Version X-AspNetMvc-Version;  # headers-more module\n# without headers-more:\nproxy_hide_header X-Powered-By;\n```\n\n**Apache**\n```\nServerTokens Prod\nServerSignature Off\n<IfModule mod_headers.c>\n    Header unset X-Powered-By\n    Header unset X-AspNet-Version\n    Header unset Server\n</IfModule>\n```\n\n**Cloudflare**\n```\nCloudflare already strips/rewrites the Server header; add Transform Rules for X-Powered-By.\n```\n\n### References\n- https://owasp.org/www-project-secure-headers/",
+                "markdown": "**Server header discloses software version**\n\nVersion banners let attackers map the target to known CVEs; hide the token and patch promptly.\n\nObserved: `Server: nginx/1.18.0`\n\n### Remediation\nRemove version banners from Server, X-Powered-By and X-AspNet-Version.  Banner grabbing is the first step of most targeted exploitation playbooks.\n\n**Nginx**\n```\n# nginx.conf (http block)\nserver_tokens off;\nmore_clear_headers Server X-Powered-By X-AspNet-Version X-AspNetMvc-Version;  # headers-more module\n# without headers-more:\nproxy_hide_header X-Powered-By;\n```\n\n**Apache**\n```\nServerTokens Prod\nServerSignature Off\n<IfModule mod_headers.c>\n    Header unset X-Powered-By\n    Header unset X-AspNet-Version\n    Header unset Server\n</IfModule>\n```\n\n**Cloudflare**\n```\nCloudflare already strips/rewrites the Server header; add Transform Rules for X-Powered-By.\n```\n\n### References\n- https://owasp.org/www-project-secure-headers/"
+              },
+              "helpUri": "https://owasp.org/www-project-secure-headers/",
+              "defaultConfiguration": {
+                "level": "note"
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "http_headers",
+                  "low"
+                ],
+                "precision": "high",
+                "security-severity": "3.0",
+                "category": "HTTP Headers"
+              }
+            },
+            {
+              "id": "http.hsts.include_subdomains",
+              "name": "HttpHstsInclude_subdomains",
+              "shortDescription": {
+                "text": "HSTS includeSubDomains is missing"
+              },
+              "fullDescription": {
+                "text": "includeSubDomains prevents attackers from downgrading any sub-domain, including forgotten staging hosts."
+              },
+              "help": {
+                "text": "**HSTS includeSubDomains is missing**\n\nincludeSubDomains prevents attackers from downgrading any sub-domain, including forgotten staging hosts.\n\nObserved: `max-age=86400`\n\n### Remediation\nSend Strict-Transport-Security on every HTTPS response with a max-age of at least one year, includeSubDomains and (once you are confident) preload. HSTS closes the SSL-stripping window for returning visitors.\n\n**Nginx**\n```\nadd_header Strict-Transport-Security \"max-age=31536000; includeSubDomains; preload\" always;\n```\n\n**Apache**\n```\n<IfModule mod_headers.c>\n    Header always set Strict-Transport-Security \"max-age=31536000; includeSubDomains; preload\"\n</IfModule>\n```\n\n**Cloudflare**\n```\nSSL/TLS → Edge Certificates → HSTS: enable, Max-Age 12 months, Include subdomains = On, Preload = On, No-Sniff header = On.\n```\n\n### References\n- https://owasp.org/www-project-secure-headers/",
+                "markdown": "**HSTS includeSubDomains is missing**\n\nincludeSubDomains prevents attackers from downgrading any sub-domain, including forgotten staging hosts.\n\nObserved: `max-age=86400`\n\n### Remediation\nSend Strict-Transport-Security on every HTTPS response with a max-age of at least one year, includeSubDomains and (once you are confident) preload. HSTS closes the SSL-stripping window for returning visitors.\n\n**Nginx**\n```\nadd_header Strict-Transport-Security \"max-age=31536000; includeSubDomains; preload\" always;\n```\n\n**Apache**\n```\n<IfModule mod_headers.c>\n    Header always set Strict-Transport-Security \"max-age=31536000; includeSubDomains; preload\"\n</IfModule>\n```\n\n**Cloudflare**\n```\nSSL/TLS → Edge Certificates → HSTS: enable, Max-Age 12 months, Include subdomains = On, Preload = On, No-Sniff header = On.\n```\n\n### References\n- https://owasp.org/www-project-secure-headers/"
+              },
+              "helpUri": "https://owasp.org/www-project-secure-headers/",
+              "defaultConfiguration": {
+                "level": "note"
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "http_headers",
+                  "low"
+                ],
+                "precision": "high",
+                "security-severity": "3.0",
+                "category": "HTTP Headers"
+              }
+            },
+            {
+              "id": "http.permissions_policy.missing",
+              "name": "HttpPermissions_policyMissing",
+              "shortDescription": {
+                "text": "Permissions-Policy header is missing"
+              },
+              "fullDescription": {
+                "text": "Without Permissions-Policy, embedded third-party frames may request camera, microphone, geolocation and other powerful features."
+              },
+              "help": {
+                "text": "**Permissions-Policy header is missing**\n\nWithout Permissions-Policy, embedded third-party frames may request camera, microphone, geolocation and other powerful features.\n\nObserved: `Permissions-Policy: absent`\n\n### Remediation\nRestrict powerful browser features with Permissions-Policy.  Deny everything you do not explicitly need and never grant camera/microphone/geolocation to '*'.\n\n**Nginx**\n```\nadd_header Permissions-Policy \"accelerometer=(), camera=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=()\" always;\n```\n\n**Apache**\n```\nHeader always set Permissions-Policy \"accelerometer=(), camera=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=()\"\n```\n\n**Cloudflare**\n```\nTransform Rule → Set response header Permissions-Policy with an explicit allow-list.\n```\n\n### References\n- https://owasp.org/www-project-secure-headers/",
+                "markdown": "**Permissions-Policy header is missing**\n\nWithout Permissions-Policy, embedded third-party frames may request camera, microphone, geolocation and other powerful features.\n\nObserved: `Permissions-Policy: absent`\n\n### Remediation\nRestrict powerful browser features with Permissions-Policy.  Deny everything you do not explicitly need and never grant camera/microphone/geolocation to '*'.\n\n**Nginx**\n```\nadd_header Permissions-Policy \"accelerometer=(), camera=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=()\" always;\n```\n\n**Apache**\n```\nHeader always set Permissions-Policy \"accelerometer=(), camera=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=()\"\n```\n\n**Cloudflare**\n```\nTransform Rule → Set response header Permissions-Policy with an explicit allow-list.\n```\n\n### References\n- https://owasp.org/www-project-secure-headers/"
+              },
+              "helpUri": "https://owasp.org/www-project-secure-headers/",
+              "defaultConfiguration": {
+                "level": "note"
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "http_headers",
+                  "low"
+                ],
+                "precision": "high",
+                "security-severity": "3.0",
+                "category": "HTTP Headers"
+              }
+            }
+          ]
+        }
+      },
+      "invocations": [
+        {
+          "executionSuccessful": true,
+          "startTimeUtc": "2026-11-15T20:24:36Z",
+          "endTimeUtc": "2026-11-15T20:24:36Z",
+          "toolExecutionNotifications": []
+        }
+      ],
+      "results": [
+        {
+          "ruleId": "dns.cname.dangling",
+          "ruleIndex": 0,
+          "level": "error",
+          "message": {
+            "text": "Dangling CNAME to a non-existent host (GitHub Pages) — observed: status.example.com CNAME status-old.github.io → NXDOMAIN"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "https://example.com/"
+                },
+                "region": {
+                  "startLine": 1,
+                  "startColumn": 1
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "secaudit/v1": "cc8bf08ca67ad295"
+          },
+          "properties": {
+            "target": "example.com",
+            "severity": "CRITICAL",
+            "status": "fail",
+            "category": "dns_email",
+            "score": 66.44,
+            "grade": "D"
+          }
+        },
+        {
+          "ruleId": "dns.spf.lookups",
+          "ruleIndex": 1,
+          "level": "error",
+          "message": {
+            "text": "SPF exceeds the 10-lookup limit (12) — observed: 12 lookups: include:_spf.google.com; include:mail.zendesk.com; …"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "https://example.com/"
+                },
+                "region": {
+                  "startLine": 1,
+                  "startColumn": 1
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "secaudit/v1": "854c83a60a009d41"
+          },
+          "properties": {
+            "target": "example.com",
+            "severity": "HIGH",
+            "status": "fail",
+            "category": "dns_email",
+            "score": 66.44,
+            "grade": "D"
+          }
+        },
+        {
+          "ruleId": "http.cookies.secure",
+          "ruleIndex": 2,
+          "level": "error",
+          "message": {
+            "text": "Cookies are missing the Secure flag — observed: 1/3 cookie(s) without Secure: cart"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "https://example.com/"
+                },
+                "region": {
+                  "startLine": 1,
+                  "startColumn": 1
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "secaudit/v1": "9117c6016d9bac53"
+          },
+          "properties": {
+            "target": "example.com",
+            "severity": "HIGH",
+            "status": "fail",
+            "category": "http_headers",
+            "score": 66.44,
+            "grade": "D"
+          }
+        },
+        {
+          "ruleId": "tls.protocol.tls1_0",
+          "ruleIndex": 3,
+          "level": "error",
+          "message": {
+            "text": "Deprecated TLSv1.0 is supported — observed: TLSv1.0: accepted"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "https://example.com/"
+                },
+                "region": {
+                  "startLine": 1,
+                  "startColumn": 1
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "secaudit/v1": "b784823f1256abe7"
+          },
+          "properties": {
+            "target": "example.com",
+            "severity": "HIGH",
+            "status": "fail",
+            "category": "tls",
+            "score": 66.44,
+            "grade": "D"
+          }
+        },
+        {
+          "ruleId": "dns.dmarc.policy",
+          "ruleIndex": 4,
+          "level": "warning",
+          "message": {
+            "text": "DMARC policy is monitor-only (p=none) — observed: v=DMARC1; p=none; rua=mailto:dmarc@example.com"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "https://example.com/"
+                },
+                "region": {
+                  "startLine": 1,
+                  "startColumn": 1
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "secaudit/v1": "8c8aafd1d1600b0b"
+          },
+          "properties": {
+            "target": "example.com",
+            "severity": "MEDIUM",
+            "status": "warn",
+            "category": "dns_email",
+            "score": 66.44,
+            "grade": "D"
+          }
+        },
+        {
+          "ruleId": "http.csp.unsafe_inline",
+          "ruleIndex": 5,
+          "level": "warning",
+          "message": {
+            "text": "CSP allows 'unsafe-inline' for scripts — observed: script-src 'self' 'unsafe-inline' https://cdn.example.net"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "https://example.com/"
+                },
+                "region": {
+                  "startLine": 1,
+                  "startColumn": 1
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "secaudit/v1": "281f4f1953e09f03"
+          },
+          "properties": {
+            "target": "example.com",
+            "severity": "MEDIUM",
+            "status": "warn",
+            "category": "http_headers",
+            "score": 66.44,
+            "grade": "D"
+          }
+        },
+        {
+          "ruleId": "http.hsts.max_age_short",
+          "ruleIndex": 6,
+          "level": "warning",
+          "message": {
+            "text": "HSTS max-age is shorter than 31536000 seconds — observed: max-age=86400 (1.0 days)"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "https://example.com/"
+                },
+                "region": {
+                  "startLine": 1,
+                  "startColumn": 1
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "secaudit/v1": "dbd09d2a45a3bfb1"
+          },
+          "properties": {
+            "target": "example.com",
+            "severity": "MEDIUM",
+            "status": "warn",
+            "category": "http_headers",
+            "score": 66.44,
+            "grade": "D"
+          }
+        },
+        {
+          "ruleId": "tls.expiry",
+          "ruleIndex": 7,
+          "level": "warning",
+          "message": {
+            "text": "TLS certificate expires in 22.5 days — observed: notAfter=2026-12-08 (22.5 days remaining)"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "https://example.com/"
+                },
+                "region": {
+                  "startLine": 1,
+                  "startColumn": 1
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "secaudit/v1": "4382f2da03c15143"
+          },
+          "properties": {
+            "target": "example.com",
+            "severity": "MEDIUM",
+            "status": "warn",
+            "category": "tls",
+            "score": 66.44,
+            "grade": "D"
+          }
+        },
+        {
+          "ruleId": "dns.dnssec.missing",
+          "ruleIndex": 8,
+          "level": "note",
+          "message": {
+            "text": "DNSSEC is not enabled — observed: DNSKEY: none; DS: none"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "https://example.com/"
+                },
+                "region": {
+                  "startLine": 1,
+                  "startColumn": 1
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "secaudit/v1": "e983a7f6e869ce19"
+          },
+          "properties": {
+            "target": "example.com",
+            "severity": "LOW",
+            "status": "warn",
+            "category": "dns_email",
+            "score": 66.44,
+            "grade": "D"
+          }
+        },
+        {
+          "ruleId": "dns.spf.all",
+          "ruleIndex": 9,
+          "level": "note",
+          "message": {
+            "text": "SPF policy soft-fails (~all) — observed: v=spf1 include:_spf.google.com include:mail.zendesk.com ~all"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "https://example.com/"
+                },
+                "region": {
+                  "startLine": 1,
+                  "startColumn": 1
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "secaudit/v1": "bedffe6623265566"
+          },
+          "properties": {
+            "target": "example.com",
+            "severity": "LOW",
+            "status": "warn",
+            "category": "dns_email",
+            "score": 66.44,
+            "grade": "D"
+          }
+        },
+        {
+          "ruleId": "http.header.server",
+          "ruleIndex": 10,
+          "level": "note",
+          "message": {
+            "text": "Server header discloses software version — observed: Server: nginx/1.18.0"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "https://example.com/"
+                },
+                "region": {
+                  "startLine": 1,
+                  "startColumn": 1
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "secaudit/v1": "52d1de4c3d6f552f"
+          },
+          "properties": {
+            "target": "example.com",
+            "severity": "LOW",
+            "status": "warn",
+            "category": "http_headers",
+            "score": 66.44,
+            "grade": "D"
+          }
+        },
+        {
+          "ruleId": "http.hsts.include_subdomains",
+          "ruleIndex": 11,
+          "level": "note",
+          "message": {
+            "text": "HSTS includeSubDomains is missing — observed: max-age=86400"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "https://example.com/"
+                },
+                "region": {
+                  "startLine": 1,
+                  "startColumn": 1
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "secaudit/v1": "4560349ee95f72e9"
+          },
+          "properties": {
+            "target": "example.com",
+            "severity": "LOW",
+            "status": "warn",
+            "category": "http_headers",
+            "score": 66.44,
+            "grade": "D"
+          }
+        },
+        {
+          "ruleId": "http.permissions_policy.missing",
+          "ruleIndex": 12,
+          "level": "note",
+          "message": {
+            "text": "Permissions-Policy header is missing — observed: Permissions-Policy: absent"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "https://example.com/"
+                },
+                "region": {
+                  "startLine": 1,
+                  "startColumn": 1
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "secaudit/v1": "6a4ef0bdae8bef10"
+          },
+          "properties": {
+            "target": "example.com",
+            "severity": "LOW",
+            "status": "warn",
+            "category": "http_headers",
+            "score": 66.44,
+            "grade": "D"
+          }
+        }
+      ],
+      "properties": {
+        "overallScore": 66.44,
+        "grade": "D",
+        "failUnder": 85.0,
+        "failOnSeverity": "critical",
+        "gatePassed": false,
+        "gateFailures": [
+          "overall score 66.4 is below --fail-under 85.0",
+          "example.com: score 66.4 is below --fail-under 85.0",
+          "1 finding(s) at or above CRITICAL severity"
+        ],
+        "targets": [
+          "example.com"
+        ]
+      }
+    }
+  ]
+}

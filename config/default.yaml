@@ -1,0 +1,61 @@
+# Default configuration for secaudit.
+# Copy this file, tweak it and pass it with:  secaudit -d example.com --config myconfig.yaml
+version: 1
+
+scan:
+  # Number of domains audited in parallel (each domain already runs its three
+  # auditors concurrently).
+  concurrency: 10
+  # Per-request / per-query timeout in seconds.
+  timeout: 10.0
+  # Maximum number of redirect hops followed by the HTTP auditor.
+  max_redirects: 10
+  user_agent: "secaudit/1.0 (+https://github.com/laithfarhat-cell/Security-Headers-DNS-Misconfiguration-Auditor)"
+  # Verify the TLS certificate chain during the HTTP audit.  Keep this on for
+  # production pipelines; disable only to inspect broken staging endpoints.
+  verify_tls: true
+  # Ports used by the TLS auditor.
+  http_port: 80
+  https_port: 443
+
+scoring:
+  # Relative weight of each category in the overall score (normalised, any
+  # positive numbers work).
+  category_weights:
+    http_headers: 45
+    tls: 25
+    dns_email: 30
+  # Default CI/CD quality gate.  Overridden by --fail-under.
+  fail_under: null
+  # Fail the build when a finding at or above this severity exists.
+  fail_on_severity: null
+  # Check ids (or prefixes) that should not influence the score, e.g.
+  #   - http.permissions_policy     # full check id
+  #   - dns.mta_sts                 # prefix match
+  ignore_checks: []
+
+http:
+  # Verify RFC 9116 security.txt at /.well-known/security.txt
+  check_security_txt: true
+  # Minimum acceptable HSTS max-age (1 year).
+  hsts_min_max_age: 31536000
+  # Cookies are only flagged for these schemes (cookie flags are meaningless on
+  # plaintext HTTP, where the real problem is the missing TLS redirect).
+  check_cookies: true
+
+dns:
+  # Custom recursive resolvers, e.g. ["1.1.1.1", "8.8.8.8"].  Empty = system.
+  nameservers: []
+  # JSON fingerprint list used for dangling CNAME / subdomain takeover checks.
+  fingerprints_file: dangling_cnames.json
+  # Warn when the SPF DNS-lookup budget exceeds this value (RFC 7208 limit 10).
+  spf_lookup_limit: 10
+  # Extra sub-domains to audit for dangling CNAMEs on every target, e.g.
+  # ["www", "blog", "status", "dev"].
+  probe_subdomains: []
+
+reporting:
+  # Findings at or above this severity are shown with remediation by default.
+  remediation_min_severity: HIGH
+  # Include PASS findings in JSON/SARIF output (they are never SARIF results).
+  include_passed_in_json: true
