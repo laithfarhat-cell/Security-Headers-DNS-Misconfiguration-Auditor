@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Security Audit — example.com</title>
+<style>
+:root {
+  color-scheme: dark;
+  --bg: #0b0f16;
+  --bg-soft: #111827;
+  --card: #131a26;
+  --card-2: #182233;
+  --border: #243044;
+  --text: #e6edf7;
+  --muted: #93a2b8;
+  --accent: #38bdf8;
+  --pass: #22c55e;
+  --info: #60a5fa;
+  --low: #a3e635;
+  --medium: #f59e0b;
+  --high: #f97316;
+  --critical: #ef4444;
+  --radius: 14px;
+  --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; background:
+    radial-gradient(1200px 600px at 10% -10%, rgba(56,189,248,.12), transparent 60%),
+    radial-gradient(900px 500px at 100% 0%, rgba(168,85,247,.12), transparent 55%),
+    var(--bg);
+  color: var(--text);
+  font: 15px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+code, pre, .mono { font-family: var(--mono); }
+code { background: rgba(148,163,184,.12); padding: .12em .35em; border-radius: 5px; font-size: .88em; }
+pre { background: #0a0f18; border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; overflow-x: auto; font-size: 12.5px; line-height: 1.55; }
+pre code { background: none; padding: 0; }
+.wrap { max-width: 1180px; margin: 0 auto; padding: 32px 22px 64px; }
+header.hero { border-bottom: 1px solid var(--border); background: linear-gradient(180deg, rgba(17,24,39,.75), transparent); }
+.hero-inner { max-width: 1180px; margin: 0 auto; padding: 34px 22px 30px; display: flex; gap: 30px; align-items: center; flex-wrap: wrap; }
+.brand { font: 600 15px/1 var(--mono); letter-spacing: .16em; text-transform: uppercase; color: var(--accent); }
+.brand span { color: var(--muted); font-weight: 400; letter-spacing: .05em; margin-left: 8px; }
+h1 { font-size: 30px; line-height: 1.2; margin: 10px 0 6px; letter-spacing: -.02em; }
+.subtitle { color: var(--muted); margin: 0; font-size: 14px; }
+.hero-copy { flex: 1 1 420px; }
+.hero-score { display: flex; align-items: center; gap: 22px; background: rgba(19,26,38,.8); border: 1px solid var(--border); border-radius: 18px; padding: 18px 24px; }
+.ring-wrap { position: relative; width: 124px; height: 124px; }
+.ring-wrap svg { transform: rotate(-90deg); }
+.ring-bg { stroke: #1f2937; }
+.ring-fg { stroke-linecap: round; transition: stroke-dashoffset .6s ease; }
+.ring-label { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.ring-score { font: 700 30px/1 var(--mono); }
+.ring-max { color: var(--muted); font-size: 11px; margin-top: 4px; letter-spacing: .08em; }
+.grade-block { text-align: center; }
+.grade-big { font: 800 54px/1 var(--mono); letter-spacing: -.03em; }
+.grade-caption { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .16em; margin-top: 6px; }
+.gate { display: inline-flex; align-items: center; gap: 8px; margin-top: 14px; padding: 7px 14px; border-radius: 999px; font-size: 13px; font-weight: 600; }
+.gate.pass { background: rgba(34,197,94,.12); color: #86efac; border: 1px solid rgba(34,197,94,.35); }
+.gate.fail { background: rgba(239,68,68,.12); color: #fca5a5; border: 1px solid rgba(239,68,68,.35); }
+.stats { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; }
+.stat { background: rgba(19,26,38,.7); border: 1px solid var(--border); border-radius: 10px; padding: 8px 12px; font-size: 12.5px; color: var(--muted); }
+.stat b { display: block; font: 700 18px/1.2 var(--mono); color: var(--text); }
+.stat.sev-critical b { color: var(--critical); }
+.stat.sev-high b { color: var(--high); }
+.stat.sev-medium b { color: var(--medium); }
+.stat.sev-low b { color: var(--low); }
+.stat.sev-pass b { color: var(--pass); }
+h2 { font-size: 20px; margin: 40px 0 14px; letter-spacing: -.01em; }
+h3 { font-size: 16px; margin: 26px 0 10px; }
+section.summary table { width: 100%; border-collapse: collapse; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+section.summary th, section.summary td { padding: 11px 14px; text-align: left; border-bottom: 1px solid rgba(36,48,68,.7); font-size: 13.5px; }
+section.summary th { background: rgba(24,34,51,.9); color: var(--muted); font-weight: 600; font-size: 11.5px; text-transform: uppercase; letter-spacing: .09em; }
+section.summary tr:last-child td { border-bottom: none; }
+.num { text-align: right; font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.grade-pill { display: inline-block; min-width: 36px; text-align: center; padding: 2px 8px; border-radius: 7px; font: 700 13px/1.5 var(--mono); }
+.grade-a { background: rgba(34,197,94,.16); color: #86efac; }
+.grade-b { background: rgba(163,230,53,.16); color: #d9f99d; }
+.grade-c { background: rgba(245,158,11,.16); color: #fcd34d; }
+.grade-d { background: rgba(249,115,22,.16); color: #fdba74; }
+.grade-f { background: rgba(239,68,68,.16); color: #fca5a5; }
+.target { margin-top: 30px; border: 1px solid var(--border); border-radius: var(--radius); background: linear-gradient(180deg, rgba(19,26,38,.95), rgba(15,21,32,.95)); overflow: hidden; }
+.target-head { padding: 20px 22px 16px; border-bottom: 1px solid var(--border); background: rgba(24,34,51,.45); }
+.target-title { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin: 0; font-size: 19px; }
+.target-title .mono { font-size: 19px; letter-spacing: -.01em; }
+.target-meta { color: var(--muted); font-size: 13px; margin-top: 8px; display: flex; gap: 16px; flex-wrap: wrap; }
+.chips { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+.chip { font-size: 12px; padding: 4px 10px; border-radius: 999px; background: rgba(148,163,184,.1); border: 1px solid var(--border); color: var(--muted); }
+.chip b { color: var(--text); font-family: var(--mono); }
+.target-body { padding: 18px 22px 22px; }
+.filters { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin: 0 0 14px; }
+.filter-btn { background: rgba(148,163,184,.08); color: var(--muted); border: 1px solid var(--border); border-radius: 999px; padding: 5px 12px; font-size: 12px; cursor: pointer; }
+.filter-btn:hover, .filter-btn.active { color: var(--text); border-color: var(--accent); }
+.filter-btn[data-severity="CRITICAL"] { color: #fca5a5; }
+.filter-btn[data-severity="HIGH"] { color: #fdba74; }
+.filter-btn[data-severity="MEDIUM"] { color: #fcd34d; }
+details.finding { border: 1px solid var(--border); border-left: 4px solid var(--border); border-radius: 10px; margin-bottom: 10px; background: var(--card-2); overflow: hidden; }
+details.finding[data-severity="CRITICAL"] { border-left-color: var(--critical); }
+details.finding[data-severity="HIGH"] { border-left-color: var(--high); }
+details.finding[data-severity="MEDIUM"] { border-left-color: var(--medium); }
+details.finding[data-severity="LOW"] { border-left-color: var(--low); }
+details.finding[data-severity="INFO"] { border-left-color: var(--info); }
+details.finding[data-severity="PASS"] { border-left-color: var(--pass); }
+details.finding summary { list-style: none; cursor: pointer; padding: 12px 14px; display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+details.finding summary::-webkit-details-marker { display: none; }
+details.finding summary::after { content: "▸"; margin-left: auto; color: var(--muted); }
+details.finding[open] summary::after { content: "▾"; }
+.badge { font: 700 10.5px/1 var(--mono); letter-spacing: .1em; padding: 5px 7px; border-radius: 5px; text-transform: uppercase; }
+.badge.CRITICAL { background: rgba(239,68,68,.18); color: #fca5a5; }
+.badge.HIGH { background: rgba(249,115,22,.18); color: #fdba74; }
+.badge.MEDIUM { background: rgba(245,158,11,.18); color: #fcd34d; }
+.badge.LOW { background: rgba(163,230,53,.14); color: #d9f99d; }
+.badge.INFO { background: rgba(96,165,250,.16); color: #bfdbfe; }
+.badge.PASS { background: rgba(34,197,94,.16); color: #86efac; }
+.finding-title { font-weight: 600; }
+.check-id { color: var(--muted); font: 11.5px/1.4 var(--mono); }
+.finding-body { padding: 2px 16px 18px 16px; border-top: 1px solid rgba(36,48,68,.7); }
+.finding-body p { margin: 12px 0; }
+.evidence { background: rgba(148,163,184,.08); border: 1px dashed var(--border); border-radius: 8px; padding: 10px 12px; font-family: var(--mono); font-size: 12.5px; color: #cbd5e1; overflow-x: auto; }
+.rem-block { margin-top: 16px; background: rgba(56,189,248,.05); border: 1px solid rgba(56,189,248,.18); border-radius: 10px; padding: 14px 16px; }
+.rem-block h4 { margin: 0 0 8px; font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--accent); }
+.platform { font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin: 14px 0 6px; }
+.refs { margin-top: 12px; font-size: 12.5px; color: var(--muted); }
+.no-findings { color: #86efac; background: rgba(34,197,94,.08); border: 1px solid rgba(34,197,94,.25); border-radius: 10px; padding: 14px 16px; }
+details.passed { margin-top: 16px; }
+details.passed summary { cursor: pointer; color: var(--muted); font-size: 13px; }
+details.passed ul { margin: 10px 0 0; padding-left: 20px; color: var(--muted); font-size: 13px; }
+details.passed li { margin-bottom: 4px; }
+footer { margin-top: 46px; padding-top: 20px; border-top: 1px solid var(--border); color: var(--muted); font-size: 12.5px; }
+@media (max-width: 720px) {
+  .hero-score { width: 100%; }
+  h1 { font-size: 24px; }
+}
+</style>
+</head>
+<body>
+<header class="hero">
+  <div class="hero-inner">
+    <div class="hero-copy">
+      <div class="brand">secaudit<span>v1.0.0</span></div>
+      <h1>Security Headers &amp; DNS Posture Report</h1>
+      <p class="subtitle">Generated 2026-11-15 20:24 UTC · 1 target(s) · 2.1s runtime</p>
+      <div class="gate fail">Quality gate failed</div>
+      <div class="stats">
+        <div class="stat sev-critical"><b>1</b>critical</div>
+        <div class="stat sev-high"><b>3</b>high</div>
+        <div class="stat sev-medium"><b>4</b>medium</div>
+        <div class="stat sev-low"><b>5</b>low</div>
+        <div class="stat sev-pass"><b>16</b>passed</div>
+      </div>
+    </div>
+    <div class="hero-score">
+      <div class="ring-wrap">
+        <svg width="124" height="124" viewBox="0 0 124 124" aria-hidden="true">
+  <circle class="ring-bg" cx="62" cy="62" r="52" fill="none" stroke-width="10"></circle>
+  <circle class="ring-fg" cx="62" cy="62" r="52" fill="none" stroke-width="10"
+          stroke="#f97316" stroke-dasharray="326.73"
+          stroke-dashoffset="109.65"></circle>
+</svg>
+        <div class="ring-label">
+          <div class="ring-score">66</div>
+          <div class="ring-max">/ 100</div>
+        </div>
+      </div>
+      <div class="grade-block">
+        <div class="grade-big grade-d">D</div>
+        <div class="grade-caption">Overall grade</div>
+      </div>
+    </div>
+  </div>
+</header>
+<main class="wrap">
+  <section class="summary">
+    <h2>Targets</h2>
+    <table>
+      <thead>
+        <tr><th>Target</th><th>Grade</th><th>Score</th><th>HTTP</th><th>TLS</th><th>DNS</th><th>Crit</th><th>High</th><th>Med</th><th>Low</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+      <td class="mono">example.com</td>
+      <td><span class="grade-pill grade-d">D</span></td>
+      <td class="num">66.4</td>
+      <td class="num">69.7</td>
+      <td class="num">77.6</td>
+      <td class="num">52.2</td>
+      <td class="num sev-critical">1</td>
+      <td class="num sev-high">3</td>
+      <td class="num sev-medium">4</td>
+      <td class="num sev-low">5</td>
+    </tr>
+      </tbody>
+    </table>
+  </section>
+  <div class="filters">
+    <span class="check-id">Show:</span>
+    <button class="filter-btn active" data-severity="ALL">All</button>
+    <button class="filter-btn" data-severity="CRITICAL">CRITICAL</button><button class="filter-btn" data-severity="HIGH">HIGH</button><button class="filter-btn" data-severity="MEDIUM">MEDIUM</button><button class="filter-btn" data-severity="LOW">LOW</button><button class="filter-btn" data-severity="INFO">INFO</button>
+  </div>
+  <article class="target">
+  <div class="target-head">
+    <h2 class="target-title"><span class="mono">example.com</span>
+      <span class="grade-pill grade-d">D</span>
+      <span class="check-id">66.4/100</span>
+    </h2>
+    <div class="target-meta"><span>https://example.com/</span><span>HTTP 200</span><span>1 redirect(s)</span><span>cert expires 2026-12-08</span><span>SPF v=spf1 include:_spf.google.com include:mail.zendesk.com ~all</span><span>DMARC v=DMARC1; p=none; rua=mailto:dmarc@example.com</span></div>
+    <div class="chips"><span class="chip">HTTP Headers <b>69.7</b></span><span class="chip">TLS <b>77.6</b></span><span class="chip">DNS / Email <b>52.2</b></span></div>
+  </div>
+  <div class="target-body">
+    <details class="finding" data-severity="CRITICAL">
+  <summary>
+    <span class="badge CRITICAL">CRITICAL</span>
+    <span class="finding-title">Dangling CNAME to a non-existent host (GitHub Pages)</span>
+    <span class="check-id">dns.cname.dangling</span>
+  </summary>
+  <div class="finding-body">
+    <p>status.example.com is a CNAME to status-old.github.io, which does not resolve (NXDOMAIN). Whoever registers that endpoint inherits your hostname — remove or repoint the record.</p>
+    <div class="evidence">status.example.com CNAME status-old.github.io → NXDOMAIN</div>
+    <div class="rem-block">
+  <h4>Remediation</h4>
+  <p>A CNAME points at a third-party endpoint that no longer exists — an attacker can often claim it and serve content on your domain.  Remove or repoint the record, or re-claim the service.</p>
+  <div class="platform">Cloudflare</div><pre><code>DNS → Records → delete or repoint the dangling CNAME, then purge the edge cache.</code></pre><div class="platform">DNS</div><pre><code>example.com.   IN CNAME   &lt;active-provider-endpoint&gt;
+# or delete the record entirely:
+# dig +short example.com CNAME  # confirm the chain is gone</code></pre>
+  <p class="refs">Reference: <a href="https://owasp.org/www-community/attacks/Subdomain_takeover">https://owasp.org/www-community/attacks/Subdomain_takeover</a></p>
+</div>
+    <p class="refs">References: <a href="https://owasp.org/www-project-secure-headers/">https://owasp.org/www-project-secure-headers/</a></p>
+  </div>
+</details>
+<details class="finding" data-severity="HIGH">
+  <summary>
+    <span class="badge HIGH">HIGH</span>
+    <span class="finding-title">SPF exceeds the 10-lookup limit (12)</span>
+    <span class="check-id">dns.spf.lookups</span>
+  </summary>
+  <div class="finding-body">
+    <p>RFC 7208 caps a policy evaluation at 10 DNS lookups; exceeding it returns permerror and receivers ignore the record, re-enabling spoofing.</p>
+    <div class="evidence">12 lookups: include:_spf.google.com; include:mail.zendesk.com; …</div>
+    <div class="rem-block">
+  <h4>Remediation</h4>
+  <p>Publish exactly one SPF record per domain, end it with -all (hard fail), keep the DNS-lookup count at or below 10 and remove deprecated mechanisms such as ptr.</p>
+  <div class="platform">DNS</div><pre><code>example.com.        TXT  &quot;v=spf1 mx include:_spf.example-provider.com -all&quot;
+# count lookups first:  https://www.kitterman.com/spf/validate.html
+# &gt;10 lookups? flatten includes or split transactional mail onto a subdomain:
+mail.example.com.   TXT  &quot;v=spf1 include:_spf.example-provider.com -all&quot;</code></pre>
+  <p class="refs">Reference: <a href="https://www.rfc-editor.org/rfc/rfc7208">https://www.rfc-editor.org/rfc/rfc7208</a></p>
+</div>
+    <p class="refs">References: <a href="https://owasp.org/www-project-secure-headers/">https://owasp.org/www-project-secure-headers/</a></p>
+  </div>
+</details>
+<details class="finding" data-severity="HIGH">
+  <summary>
+    <span class="badge HIGH">HIGH</span>
+    <span class="finding-title">Cookies are missing the Secure flag</span>
+    <span class="check-id">http.cookies.secure</span>
+  </summary>
+  <div class="finding-body">
+    <p>Cookies without Secure are transmitted over plaintext HTTP and can be captured by any on-path attacker. Session cookies must be Secure.</p>
+    <div class="evidence">1/3 cookie(s) without Secure: cart</div>
+    <div class="rem-block">
+  <h4>Remediation</h4>
+  <p>Every session cookie needs Secure + HttpOnly + SameSite.  Use the __Host- prefix (requires Secure, Path=/ and no Domain attribute) for authentication cookies.</p>
+  <div class="platform">Nginx</div><pre><code># nginx ≥ 1.19.3 – rewrite flags on all proxied cookies
+proxy_cookie_flags ~ secure httponly samesite=strict;</code></pre><div class="platform">Apache</div><pre><code># mod_headers – append the flags if missing
+Header edit Set-Cookie ^(.*)$ &quot;$1; Secure; HttpOnly; SameSite=Lax&quot;</code></pre><div class="platform">Cloudflare</div><pre><code>Cloudflare cannot rewrite Set-Cookie; fix it at the origin or in the application framework.</code></pre>
+  <p class="refs">Reference: <a href="https://owasp.org/www-community/controls/SecureCookieAttribute">https://owasp.org/www-community/controls/SecureCookieAttribute</a></p>
+</div>
+    <p class="refs">References: <a href="https://owasp.org/www-project-secure-headers/">https://owasp.org/www-project-secure-headers/</a></p>
+  </div>
+</details>
+<details class="finding" data-severity="HIGH">
+  <summary>
+    <span class="badge HIGH">HIGH</span>
+    <span class="finding-title">Deprecated TLSv1.0 is supported</span>
+    <span class="check-id">tls.protocol.tls1_0</span>
+  </summary>
+  <div class="finding-body">
+    <p>TLSv1.0 is deprecated by RFC 8996 and vulnerable to a long list of downgrade and padding-oracle attacks. Disable it and require TLS 1.2+.</p>
+    <div class="evidence">TLSv1.0: accepted</div>
+    <div class="rem-block">
+  <h4>Remediation</h4>
+  <p>Disable TLS 1.0 and TLS 1.1 (deprecated by RFC 8996) and allow only TLS 1.2/1.3 with modern cipher suites.</p>
+  <div class="platform">Nginx</div><pre><code>ssl_protocols TLSv1.2 TLSv1.3;
+ssl_prefer_server_ciphers off;
+ssl_ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305;</code></pre><div class="platform">Apache</div><pre><code>SSLProtocol -all +TLSv1.2 +TLSv1.3
+SSLCipherSuite ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384
+SSLHonorCipherOrder off</code></pre><div class="platform">Cloudflare</div><pre><code>SSL/TLS → Edge Certificates → Minimum TLS Version: TLS 1.2 (or TLS 1.3).</code></pre>
+  <p class="refs">Reference: <a href="https://www.rfc-editor.org/rfc/rfc8996">https://www.rfc-editor.org/rfc/rfc8996</a></p>
+</div>
+    <p class="refs">References: <a href="https://owasp.org/www-project-secure-headers/">https://owasp.org/www-project-secure-headers/</a></p>
+  </div>
+</details>
+<details class="finding" data-severity="MEDIUM">
+  <summary>
+    <span class="badge MEDIUM">MEDIUM</span>
+    <span class="finding-title">DMARC policy is monitor-only (p=none)</span>
+    <span class="check-id">dns.dmarc.policy</span>
+  </summary>
+  <div class="finding-body">
+    <p>p=none requests reports but tells receivers to deliver failing mail, so spoofing still reaches inboxes. Move to quarantine then reject.</p>
+    <div class="evidence">v=DMARC1; p=none; rua=mailto:dmarc@example.com</div>
+    <div class="rem-block">
+  <h4>Remediation</h4>
+  <p>Publish a DMARC record with p=quarantine or p=reject and rua reporting so you can detect spoofing attempts and receive aggregate reports.</p>
+  <div class="platform">Cloudflare</div><pre><code>Cloudflare Email Security / DNS → add the TXT record at _dmarc.example.com. Keep Email Routing&#x27;s own SPF/DKIM records intact.</code></pre><div class="platform">DNS</div><pre><code>_dmarc.example.com.  TXT  &quot;v=DMARC1; p=reject; sp=reject; adkim=s; aspf=s; pct=100; fo=1; rua=mailto:dmarc-reports@example.com; ruf=mailto:dmarc-forensics@example.com&quot;
+# rollout: start with p=none, review rua reports for 2-4 weeks, then move to p=quarantine and finally p=reject</code></pre>
+  <p class="refs">Reference: <a href="https://www.rfc-editor.org/rfc/rfc7489">https://www.rfc-editor.org/rfc/rfc7489</a></p>
+</div>
+    <p class="refs">References: <a href="https://owasp.org/www-project-secure-headers/">https://owasp.org/www-project-secure-headers/</a></p>
+  </div>
+</details>
+<details class="finding" data-severity="MEDIUM">
+  <summary>
+    <span class="badge MEDIUM">MEDIUM</span>
+    <span class="finding-title">CSP allows &#x27;unsafe-inline&#x27; for scripts</span>
+    <span class="check-id">http.csp.unsafe_inline</span>
+  </summary>
+  <div class="finding-body">
+    <p>&#x27;unsafe-inline&#x27; re-enables inline &lt;script&gt; execution, which neutralises most of CSP&#x27;s XSS protection. Replace inline handlers with nonces or hashes.</p>
+    <div class="evidence">script-src &#x27;self&#x27; &#x27;unsafe-inline&#x27; https://cdn.example.net</div>
+    <div class="rem-block">
+  <h4>Remediation</h4>
+  <p>Deploy a restrictive Content-Security-Policy built from a nonce or hash based script-src, drop &#x27;unsafe-inline&#x27;/&#x27;unsafe-eval&#x27;, and lock down framing with frame-ancestors.  Roll it out with Content-Security-Policy-Report-Only first.</p>
+  <div class="platform">Nginx</div><pre><code>add_header Content-Security-Policy &quot;default-src &#x27;self&#x27;; script-src &#x27;self&#x27; &#x27;nonce-$request_id&#x27;; style-src &#x27;self&#x27;; img-src &#x27;self&#x27; data:; font-src &#x27;self&#x27;; connect-src &#x27;self&#x27;; object-src &#x27;none&#x27;; base-uri &#x27;self&#x27;; frame-ancestors &#x27;self&#x27;; form-action &#x27;self&#x27;; upgrade-insecure-requests&quot; always;</code></pre><div class="platform">Apache</div><pre><code>&lt;IfModule mod_headers.c&gt;
+    Header always set Content-Security-Policy &quot;default-src &#x27;self&#x27;; script-src &#x27;self&#x27;; style-src &#x27;self&#x27;; img-src &#x27;self&#x27; data:; object-src &#x27;none&#x27;; base-uri &#x27;self&#x27;; frame-ancestors &#x27;self&#x27;; form-action &#x27;self&#x27;&quot;
+&lt;/IfModule&gt;</code></pre><div class="platform">Cloudflare</div><pre><code>Cloudflare does not synthesise a CSP. Inject it with a Transform Rule (Modify Response Header → Set → Content-Security-Policy) or at your origin.</code></pre>
+  <p class="refs">Reference: <a href="https://owasp.org/www-project-secure-headers/#content-security-policy">https://owasp.org/www-project-secure-headers/#content-security-policy</a></p>
+</div>
+    <p class="refs">References: <a href="https://owasp.org/www-project-secure-headers/">https://owasp.org/www-project-secure-headers/</a></p>
+  </div>
+</details>
+<details class="finding" data-severity="MEDIUM">
+  <summary>
+    <span class="badge MEDIUM">MEDIUM</span>
+    <span class="finding-title">HSTS max-age is shorter than 31536000 seconds</span>
+    <span class="check-id">http.hsts.max_age_short</span>
+  </summary>
+  <div class="finding-body">
+    <p>A short HSTS lifetime leaves visitors unprotected between policy expiry and renewal. Use at least one year (31536000).</p>
+    <div class="evidence">max-age=86400 (1.0 days)</div>
+    <div class="rem-block">
+  <h4>Remediation</h4>
+  <p>Send Strict-Transport-Security on every HTTPS response with a max-age of at least one year, includeSubDomains and (once you are confident) preload. HSTS closes the SSL-stripping window for returning visitors.</p>
+  <div class="platform">Nginx</div><pre><code>add_header Strict-Transport-Security &quot;max-age=31536000; includeSubDomains; preload&quot; always;</code></pre><div class="platform">Apache</div><pre><code>&lt;IfModule mod_headers.c&gt;
+    Header always set Strict-Transport-Security &quot;max-age=31536000; includeSubDomains; preload&quot;
+&lt;/IfModule&gt;</code></pre><div class="platform">Cloudflare</div><pre><code>SSL/TLS → Edge Certificates → HSTS: enable, Max-Age 12 months, Include subdomains = On, Preload = On, No-Sniff header = On.</code></pre>
+  <p class="refs">Reference: <a href="https://owasp.org/www-project-secure-headers/#strict-transport-security">https://owasp.org/www-project-secure-headers/#strict-transport-security</a></p>
+</div>
+    <p class="refs">References: <a href="https://owasp.org/www-project-secure-headers/">https://owasp.org/www-project-secure-headers/</a></p>
+  </div>
+</details>
+<details class="finding" data-severity="MEDIUM">
+  <summary>
+    <span class="badge MEDIUM">MEDIUM</span>
+    <span class="finding-title">TLS certificate expires in 22.5 days</span>
+    <span class="check-id">tls.expiry</span>
+  </summary>
+  <div class="finding-body">
+    <p>Certificates must be renewed before they expire; automate renewal and alert at 30 days.</p>
+    <div class="evidence">notAfter=2026-12-08 (22.5 days remaining)</div>
+    <div class="rem-block">
+  <h4>Remediation</h4>
+  <p>Renew the leaf certificate before it expires and monitor the remaining lifetime (alert at 30 days, page at 14).  Automate renewal with ACME.</p>
+  <div class="platform">Nginx</div><pre><code># certbot
+certbot renew --quiet --deploy-hook &quot;nginx -s reload&quot;
+# cron: 0 3 * * * certbot renew --quiet --deploy-hook &quot;systemctl reload nginx&quot;</code></pre><div class="platform">Apache</div><pre><code>certbot renew --quiet --deploy-hook &quot;systemctl reload apache2&quot;</code></pre><div class="platform">Cloudflare</div><pre><code>Cloudflare managed certificates renew automatically – verify Edge Certificates shows an active cert.</code></pre>
+  <p class="refs">Reference: <a href="https://letsencrypt.org/docs/renewal-reminder/">https://letsencrypt.org/docs/renewal-reminder/</a></p>
+</div>
+    <p class="refs">References: <a href="https://owasp.org/www-project-secure-headers/">https://owasp.org/www-project-secure-headers/</a></p>
+  </div>
+</details>
+<details class="finding" data-severity="LOW">
+  <summary>
+    <span class="badge LOW">LOW</span>
+    <span class="finding-title">DNSSEC is not enabled</span>
+    <span class="check-id">dns.dnssec.missing</span>
+  </summary>
+  <div class="finding-body">
+    <p>Unsigned zones are vulnerable to cache-poisoning and forged DNS answers on the resolution path.</p>
+    <div class="evidence">DNSKEY: none; DS: none</div>
+    <div class="rem-block">
+  <h4>Remediation</h4>
+  <p>Enable DNSSEC so resolvers can cryptographically validate your zone: publish DNSKEY/RRSIG in the zone and the matching DS record at the registrar/parent.</p>
+  <div class="platform">Cloudflare</div><pre><code>DNS → Settings → DNSSEC → Enable DNSSEC, then add the DS record at your registrar.</code></pre><div class="platform">DNS</div><pre><code># after enabling DNSSEC at the provider, publish the DS record at the parent:
+example.com.  IN DS  &lt;keytag&gt; &lt;algorithm&gt; &lt;digest-type&gt; &lt;digest&gt;
+# verify:  dig +dnssec DNSKEY example.com  /  dig +trace DS example.com</code></pre>
+  <p class="refs">Reference: <a href="https://www.rfc-editor.org/rfc/rfc4033">https://www.rfc-editor.org/rfc/rfc4033</a></p>
+</div>
+    <p class="refs">References: <a href="https://owasp.org/www-project-secure-headers/">https://owasp.org/www-project-secure-headers/</a></p>
+  </div>
+</details>
+<details class="finding" data-severity="LOW">
+  <summary>
+    <span class="badge LOW">LOW</span>
+    <span class="finding-title">SPF policy soft-fails (~all)</span>
+    <span class="check-id">dns.spf.all</span>
+  </summary>
+  <div class="finding-body">
+    <p>SoftFail lets receivers accept the message but mark it as suspicious; move to -all once all legitimate senders are listed.</p>
+    <div class="evidence">v=spf1 include:_spf.google.com include:mail.zendesk.com ~all</div>
+    <div class="rem-block">
+  <h4>Remediation</h4>
+  <p>Publish exactly one SPF record per domain, end it with -all (hard fail), keep the DNS-lookup count at or below 10 and remove deprecated mechanisms such as ptr.</p>
+  <div class="platform">DNS</div><pre><code>example.com.        TXT  &quot;v=spf1 mx include:_spf.example-provider.com -all&quot;
+# count lookups first:  https://www.kitterman.com/spf/validate.html
+# &gt;10 lookups? flatten includes or split transactional mail onto a subdomain:
+mail.example.com.   TXT  &quot;v=spf1 include:_spf.example-provider.com -all&quot;</code></pre>
+  <p class="refs">Reference: <a href="https://www.rfc-editor.org/rfc/rfc7208">https://www.rfc-editor.org/rfc/rfc7208</a></p>
+</div>
+    <p class="refs">References: <a href="https://owasp.org/www-project-secure-headers/">https://owasp.org/www-project-secure-headers/</a></p>
+  </div>
+</details>
+<details class="finding" data-severity="LOW">
+  <summary>
+    <span class="badge LOW">LOW</span>
+    <span class="finding-title">Server header discloses software version</span>
+    <span class="check-id">http.header.server</span>
+  </summary>
+  <div class="finding-body">
+    <p>Version banners let attackers map the target to known CVEs; hide the token and patch promptly.</p>
+    <div class="evidence">Server: nginx/1.18.0</div>
+    <div class="rem-block">
+  <h4>Remediation</h4>
+  <p>Remove version banners from Server, X-Powered-By and X-AspNet-Version.  Banner grabbing is the first step of most targeted exploitation playbooks.</p>
+  <div class="platform">Nginx</div><pre><code># nginx.conf (http block)
+server_tokens off;
+more_clear_headers Server X-Powered-By X-AspNet-Version X-AspNetMvc-Version;  # headers-more module
+# without headers-more:
+proxy_hide_header X-Powered-By;</code></pre><div class="platform">Apache</div><pre><code>ServerTokens Prod
+ServerSignature Off
+&lt;IfModule mod_headers.c&gt;
+    Header unset X-Powered-By
+    Header unset X-AspNet-Version
+    Header unset Server
+&lt;/IfModule&gt;</code></pre><div class="platform">Cloudflare</div><pre><code>Cloudflare already strips/rewrites the Server header; add Transform Rules for X-Powered-By.</code></pre>
+  <p class="refs">Reference: <a href="https://cheatsheetseries.owasp.org/cheatsheets/HTTP_Headers_Cheat_Sheet.html">https://cheatsheetseries.owasp.org/cheatsheets/HTTP_Headers_Cheat_Sheet.html</a></p>
+</div>
+    <p class="refs">References: <a href="https://owasp.org/www-project-secure-headers/">https://owasp.org/www-project-secure-headers/</a></p>
+  </div>
+</details>
+<details class="finding" data-severity="LOW">
+  <summary>
+    <span class="badge LOW">LOW</span>
+    <span class="finding-title">HSTS includeSubDomains is missing</span>
+    <span class="check-id">http.hsts.include_subdomains</span>
+  </summary>
+  <div class="finding-body">
+    <p>includeSubDomains prevents attackers from downgrading any sub-domain, including forgotten staging hosts.</p>
+    <div class="evidence">max-age=86400</div>
+    <div class="rem-block">
+  <h4>Remediation</h4>
+  <p>Send Strict-Transport-Security on every HTTPS response with a max-age of at least one year, includeSubDomains and (once you are confident) preload. HSTS closes the SSL-stripping window for returning visitors.</p>
+  <div class="platform">Nginx</div><pre><code>add_header Strict-Transport-Security &quot;max-age=31536000; includeSubDomains; preload&quot; always;</code></pre><div class="platform">Apache</div><pre><code>&lt;IfModule mod_headers.c&gt;
+    Header always set Strict-Transport-Security &quot;max-age=31536000; includeSubDomains; preload&quot;
+&lt;/IfModule&gt;</code></pre><div class="platform">Cloudflare</div><pre><code>SSL/TLS → Edge Certificates → HSTS: enable, Max-Age 12 months, Include subdomains = On, Preload = On, No-Sniff header = On.</code></pre>
+  <p class="refs">Reference: <a href="https://owasp.org/www-project-secure-headers/#strict-transport-security">https://owasp.org/www-project-secure-headers/#strict-transport-security</a></p>
+</div>
+    <p class="refs">References: <a href="https://owasp.org/www-project-secure-headers/">https://owasp.org/www-project-secure-headers/</a></p>
+  </div>
+</details>
+<details class="finding" data-severity="LOW">
+  <summary>
+    <span class="badge LOW">LOW</span>
+    <span class="finding-title">Permissions-Policy header is missing</span>
+    <span class="check-id">http.permissions_policy.missing</span>
+  </summary>
+  <div class="finding-body">
+    <p>Without Permissions-Policy, embedded third-party frames may request camera, microphone, geolocation and other powerful features.</p>
+    <div class="evidence">Permissions-Policy: absent</div>
+    <div class="rem-block">
+  <h4>Remediation</h4>
+  <p>Restrict powerful browser features with Permissions-Policy.  Deny everything you do not explicitly need and never grant camera/microphone/geolocation to &#x27;*&#x27;.</p>
+  <div class="platform">Nginx</div><pre><code>add_header Permissions-Policy &quot;accelerometer=(), camera=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=()&quot; always;</code></pre><div class="platform">Apache</div><pre><code>Header always set Permissions-Policy &quot;accelerometer=(), camera=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=()&quot;</code></pre><div class="platform">Cloudflare</div><pre><code>Transform Rule → Set response header Permissions-Policy with an explicit allow-list.</code></pre>
+  <p class="refs">Reference: <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Permissions-Policy">https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Permissions-Policy</a></p>
+</div>
+    <p class="refs">References: <a href="https://owasp.org/www-project-secure-headers/">https://owasp.org/www-project-secure-headers/</a></p>
+  </div>
+</details>
+    <details class="passed"><summary>✅ 17 passed / informational checks</summary><ul><li><code>dns.mta_sts.missing</code> — MTA-STS is not configured</li><li><code>dns.caa.present</code> — CAA records restrict certificate issuance</li><li><code>dns.dmarc.present</code> — DMARC record is published</li><li><code>dns.spf.present</code> — SPF record is published</li><li><code>http.cookies.httponly</code> — All cookies carry the HttpOnly flag</li><li><code>http.coop.present</code> — Cross-Origin-Opener-Policy: same-origin is set</li><li><code>http.csp.present</code> — Content-Security-Policy is enforced</li><li><code>http.referrer_policy.valid</code> — Referrer-Policy restricts referrer leakage</li><li><code>http.security_txt.valid</code> — security.txt is published and RFC 9116 compliant</li><li><code>http.x_content_type_options.nosniff</code> — X-Content-Type-Options: nosniff is set</li><li><code>http.x_frame_options.valid</code> — X-Frame-Options: SAMEORIGIN is set</li><li><code>tls.certificate_san</code> — Certificate covers example.com</li><li><code>tls.cipher</code> — Negotiated cipher suite is strong</li><li><code>tls.https_redirect</code> — Plaintext HTTP redirects to HTTPS</li><li><code>tls.protocol.tls13</code> — TLS 1.3 is enabled</li><li><code>tls.protocol.tls1_1</code> — Deprecated TLSv1.1 is disabled</li><li><code>tls.trust</code> — TLS certificate chain validates against the system trust store</li></ul></details>
+  </div>
+</article>
+  <footer>
+    Generated by <a href="https://github.com/laithfarhat-cell/Security-Headers-DNS-Misconfiguration-Auditor">secaudit</a> v1.0.0 · findings are based on OWASP Secure Headers, RFC 9116, RFC 7208, RFC 7489, RFC 8659 and RFC 8461 guidance.
+    Category weights: HTTP 45% · TLS 25% · DNS 30%.
+  </footer>
+</main>
+<script>
+document.querySelectorAll('.filter-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const severity = btn.dataset.severity;
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.toggle('active', b === btn));
+    document.querySelectorAll('details.finding').forEach(card => {
+      card.style.display = (severity === 'ALL' || card.dataset.severity === severity) ? '' : 'none';
+    });
+  });
+});
+</script>
+</body>
+</html>

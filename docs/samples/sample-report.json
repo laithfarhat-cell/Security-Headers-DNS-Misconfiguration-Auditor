@@ -1,0 +1,1395 @@
+{
+  "schema_version": "1.0",
+  "tool": {
+    "name": "secaudit",
+    "version": "1.0.0"
+  },
+  "generated_at": "2026-11-15T20:24:36.592998+00:00",
+  "duration_ms": 2140.0,
+  "options": {
+    "concurrency": 10,
+    "timeout": 10.0,
+    "nameservers": [
+      "1.1.1.1",
+      "8.8.8.8"
+    ],
+    "category_weights": {
+      "http_headers": 45,
+      "tls": 25,
+      "dns_email": 30
+    }
+  },
+  "gate": {
+    "fail_under": 85.0,
+    "fail_on_severity": "critical",
+    "passed": false,
+    "reasons": [
+      "overall score 66.4 is below --fail-under 85.0",
+      "example.com: score 66.4 is below --fail-under 85.0",
+      "1 finding(s) at or above CRITICAL severity"
+    ]
+  },
+  "summary": {
+    "targets": 1,
+    "overall_score": 66.44,
+    "grade": "D",
+    "worst_severity": "CRITICAL",
+    "counts": {
+      "PASS": 16,
+      "INFO": 1,
+      "LOW": 5,
+      "MEDIUM": 4,
+      "HIGH": 3,
+      "CRITICAL": 1
+    }
+  },
+  "results": [
+    {
+      "target": "example.com",
+      "score": 66.44,
+      "grade": "D",
+      "category_scores": {
+        "http_headers": 69.71,
+        "tls": 77.62,
+        "dns_email": 52.22
+      },
+      "counts": {
+        "PASS": 16,
+        "INFO": 1,
+        "LOW": 5,
+        "MEDIUM": 4,
+        "HIGH": 3,
+        "CRITICAL": 1
+      },
+      "highest_severity": "CRITICAL",
+      "failed": true,
+      "duration_ms": 1913.0,
+      "started_at": "2026-11-15T20:24:36.592856+00:00",
+      "metadata": {
+        "requested_target": "example.com",
+        "final_url": "https://example.com/",
+        "status_code": 200,
+        "redirect_chain": [
+          {
+            "url": "http://example.com/",
+            "status": 301,
+            "location": "https://example.com/"
+          },
+          {
+            "url": "https://example.com/",
+            "status": 200,
+            "location": null
+          }
+        ],
+        "https": true,
+        "certificate_issuer": "C=US, O=Let's Encrypt, CN=R11",
+        "certificate_expires": "2026-12-08T08:14:59+00:00",
+        "protocols": {
+          "TLSv1.0": true,
+          "TLSv1.1": false,
+          "TLSv1.2": true,
+          "TLSv1.3": true
+        },
+        "nameservers": [
+          "1.1.1.1",
+          "8.8.8.8"
+        ],
+        "spf": [
+          "v=spf1 include:_spf.google.com include:mail.zendesk.com ~all"
+        ],
+        "dmarc": [
+          "v=DMARC1; p=none; rua=mailto:dmarc@example.com"
+        ]
+      },
+      "sections": {
+        "http_headers": {
+          "category": "http_headers",
+          "error": null,
+          "duration_ms": 612.0,
+          "findings": [
+            {
+              "check_id": "http.hsts.max_age_short",
+              "title": "HSTS max-age is shorter than 31536000 seconds",
+              "category": "http_headers",
+              "severity": "MEDIUM",
+              "status": "warn",
+              "weight": 9.0,
+              "description": "A short HSTS lifetime leaves visitors unprotected between policy expiry and renewal. Use at least one year (31536000).",
+              "evidence": "max-age=86400 (1.0 days)",
+              "target": "example.com",
+              "references": [
+                "https://owasp.org/www-project-secure-headers/"
+              ],
+              "fingerprint": "dbd09d2a45a3bfb1",
+              "remediation": {
+                "summary": "Send Strict-Transport-Security on every HTTPS response with a max-age of at least one year, includeSubDomains and (once you are confident) preload. HSTS closes the SSL-stripping window for returning visitors.",
+                "nginx": "add_header Strict-Transport-Security \"max-age=31536000; includeSubDomains; preload\" always;",
+                "apache": "<IfModule mod_headers.c>\n    Header always set Strict-Transport-Security \"max-age=31536000; includeSubDomains; preload\"\n</IfModule>",
+                "cloudflare": "SSL/TLS → Edge Certificates → HSTS: enable, Max-Age 12 months, Include subdomains = On, Preload = On, No-Sniff header = On.",
+                "dns": null,
+                "reference": "https://owasp.org/www-project-secure-headers/#strict-transport-security"
+              }
+            },
+            {
+              "check_id": "http.hsts.include_subdomains",
+              "title": "HSTS includeSubDomains is missing",
+              "category": "http_headers",
+              "severity": "LOW",
+              "status": "warn",
+              "weight": 3.0,
+              "description": "includeSubDomains prevents attackers from downgrading any sub-domain, including forgotten staging hosts.",
+              "evidence": "max-age=86400",
+              "target": "example.com",
+              "references": [
+                "https://owasp.org/www-project-secure-headers/"
+              ],
+              "fingerprint": "4560349ee95f72e9",
+              "remediation": {
+                "summary": "Send Strict-Transport-Security on every HTTPS response with a max-age of at least one year, includeSubDomains and (once you are confident) preload. HSTS closes the SSL-stripping window for returning visitors.",
+                "nginx": "add_header Strict-Transport-Security \"max-age=31536000; includeSubDomains; preload\" always;",
+                "apache": "<IfModule mod_headers.c>\n    Header always set Strict-Transport-Security \"max-age=31536000; includeSubDomains; preload\"\n</IfModule>",
+                "cloudflare": "SSL/TLS → Edge Certificates → HSTS: enable, Max-Age 12 months, Include subdomains = On, Preload = On, No-Sniff header = On.",
+                "dns": null,
+                "reference": "https://owasp.org/www-project-secure-headers/#strict-transport-security"
+              }
+            },
+            {
+              "check_id": "http.csp.present",
+              "title": "Content-Security-Policy is enforced",
+              "category": "http_headers",
+              "severity": "PASS",
+              "status": "pass",
+              "weight": 10.0,
+              "description": "An enforced CSP limits which sources the browser may load resources from.",
+              "evidence": "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.example.net",
+              "target": "example.com",
+              "references": [
+                "https://owasp.org/www-project-secure-headers/"
+              ],
+              "fingerprint": "72266f278f8470d5"
+            },
+            {
+              "check_id": "http.csp.unsafe_inline",
+              "title": "CSP allows 'unsafe-inline' for scripts",
+              "category": "http_headers",
+              "severity": "MEDIUM",
+              "status": "warn",
+              "weight": 3.0,
+              "description": "'unsafe-inline' re-enables inline <script> execution, which neutralises most of CSP's XSS protection. Replace inline handlers with nonces or hashes.",
+              "evidence": "script-src 'self' 'unsafe-inline' https://cdn.example.net",
+              "target": "example.com",
+              "references": [
+                "https://owasp.org/www-project-secure-headers/"
+              ],
+              "fingerprint": "281f4f1953e09f03",
+              "remediation": {
+                "summary": "Deploy a restrictive Content-Security-Policy built from a nonce or hash based script-src, drop 'unsafe-inline'/'unsafe-eval', and lock down framing with frame-ancestors.  Roll it out with Content-Security-Policy-Report-Only first.",
+                "nginx": "add_header Content-Security-Policy \"default-src 'self'; script-src 'self' 'nonce-$request_id'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'self'; form-action 'self'; upgrade-insecure-requests\" always;",
+                "apache": "<IfModule mod_headers.c>\n    Header always set Content-Security-Policy \"default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'self'; frame-ancestors 'self'; form-action 'self'\"\n</IfModule>",
+                "cloudflare": "Cloudflare does not synthesise a CSP. Inject it with a Transform Rule (Modify Response Header → Set → Content-Security-Policy) or at your origin.",
+                "dns": null,
+                "reference": "https://owasp.org/www-project-secure-headers/#content-security-policy"
+              }
+            },
+            {
+              "check_id": "http.x_content_type_options.nosniff",
+              "title": "X-Content-Type-Options: nosniff is set",
+              "category": "http_headers",
+              "severity": "PASS",
+              "status": "pass",
+              "weight": 6.0,
+              "description": "MIME sniffing is disabled, preventing content-type confusion attacks.",
+              "evidence": "nosniff",
+              "target": "example.com",
+              "references": [
+                "https://owasp.org/www-project-secure-headers/"
+              ],
+              "fingerprint": "4175bacef75367c9"
+            },
+            {
+              "check_id": "http.x_frame_options.valid",
+              "title": "X-Frame-Options: SAMEORIGIN is set",
+              "category": "http_headers",
+              "severity": "PASS",
+              "status": "pass",
+              "weight": 5.0,
+              "description": "Framing by third-party origins is blocked.",
+              "evidence": "SAMEORIGIN",
+              "target": "example.com",
+              "references": [
+                "https://owasp.org/www-project-secure-headers/"
+              ],
+              "fingerprint": "3c80293f4b8ae0ee"
+            },
+            {
+              "check_id": "http.referrer_policy.valid",
+              "title": "Referrer-Policy restricts referrer leakage",
+              "category": "http_headers",
+              "severity": "PASS",
+              "status": "pass",
+              "weight": 6.0,
+              "description": "Cross-origin requests only receive the origin, not the full path.",
+              "evidence": "strict-origin-when-cross-origin",
+              "target": "example.com",
+              "references": [
+                "https://owasp.org/www-project-secure-headers/"
+              ],
+              "fingerprint": "bbc43de49e347e7b"
+            },
+            {
+              "check_id": "http.permissions_policy.missing",
+              "title": "Permissions-Policy header is missing",
+              "category": "http_headers",
+              "severity": "LOW",
+              "status": "warn",
+              "weight": 5.0,
+              "description": "Without Permissions-Policy, embedded third-party frames may request camera, microphone, geolocation and other powerful features.",
+              "evidence": "Permissions-Policy: absent",
+              "target": "example.com",
+              "references": [
+                "https://owasp.org/www-project-secure-headers/"
+              ],
+              "fingerprint": "6a4ef0bdae8bef10",
+              "remediation": {
+                "summary": "Restrict powerful browser features with Permissions-Policy.  Deny everything you do not explicitly need and never grant camera/microphone/geolocation to '*'.",
+                "nginx": "add_header Permissions-Policy \"accelerometer=(), camera=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=()\" always;",
+                "apache": "Header always set Permissions-Policy \"accelerometer=(), camera=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=()\"",
+                "cloudflare": "Transform Rule → Set response header Permissions-Policy with an explicit allow-list.",
+                "dns": null,
+                "reference": "https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Permissions-Policy"
+              }
+            },
+            {
+              "check_id": "http.coop.present",
+              "title": "Cross-Origin-Opener-Policy: same-origin is set",
+              "category": "http_headers",
+              "severity": "PASS",
+              "status": "pass",
+              "weight": 4.0,
+              "description": "The browsing context is isolated from cross-origin openers.",
+              "evidence": "same-origin",
+              "target": "example.com",
+              "references": [
+                "https://owasp.org/www-project-secure-headers/"
+              ],
+              "fingerprint": "c0a706e2bd987278"
+            },
+            {
+              "check_id": "http.cookies.secure",
+              "title": "Cookies are missing the Secure flag",
+              "category": "http_headers",
+              "severity": "HIGH",
+              "status": "fail",
+              "weight": 8.0,
+              "description": "Cookies without Secure are transmitted over plaintext HTTP and can be captured by any on-path attacker. Session cookies must be Secure.",
+              "evidence": "1/3 cookie(s) without Secure: cart",
+              "target": "example.com",
+              "references": [
+                "https://owasp.org/www-project-secure-headers/"
+              ],
+              "fingerprint": "9117c6016d9bac53",
+              "remediation": {
+                "summary": "Every session cookie needs Secure + HttpOnly + SameSite.  Use the __Host- prefix (requires Secure, Path=/ and no Domain attribute) for authentication cookies.",
+                "nginx": "# nginx ≥ 1.19.3 – rewrite flags on all proxied cookies\nproxy_cookie_flags ~ secure httponly samesite=strict;",
+                "apache": "# mod_headers – append the flags if missing\nHeader edit Set-Cookie ^(.*)$ \"$1; Secure; HttpOnly; SameSite=Lax\"",
+                "cloudflare": "Cloudflare cannot rewrite Set-Cookie; fix it at the origin or in the application framework.",
+                "dns": null,
+                "reference": "https://owasp.org/www-community/controls/SecureCookieAttribute"
+              }
+            },
+            {
+              "check_id": "http.cookies.httponly",
+              "title": "All cookies carry the HttpOnly flag",
+              "category": "http_headers",
+              "severity": "PASS",
+              "status": "pass",
+              "weight": 5.0,
+              "description": "HttpOnly stops JavaScript from reading the cookie, blunting session hijacking after an XSS.",
+              "evidence": "3 cookie(s) verified",
+              "target": "example.com",
+              "references": [
+                "https://owasp.org/www-project-secure-headers/"
+              ],
+              "fingerprint": "55fecba2c74632af"
+            },
+            {
+              "check_id": "http.header.server",
+              "title": "Server header discloses software version",
+              "category": "http_headers",
+              "severity": "LOW",
+              "status": "warn",
+              "weight": 2.0,
+              "description": "Version banners let attackers map the target to known CVEs; hide the token and patch promptly.",
+              "evidence": "Server: nginx/1.18.0",
+              "target": "example.com",
+              "references": [
+                "https://owasp.org/www-project-secure-headers/"
+              ],
+              "fingerprint": "52d1de4c3d6f552f",
+              "remediation": {
+                "summary": "Remove version banners from Server, X-Powered-By and X-AspNet-Version.  Banner grabbing is the first step of most targeted exploitation playbooks.",
+                "nginx": "# nginx.conf (http block)\nserver_tokens off;\nmore_clear_headers Server X-Powered-By X-AspNet-Version X-AspNetMvc-Version;  # headers-more module\n# without headers-more:\nproxy_hide_header X-Powered-By;",
+                "apache": "ServerTokens Prod\nServerSignature Off\n<IfModule mod_headers.c>\n    Header unset X-Powered-By\n    Header unset X-AspNet-Version\n    Header unset Server\n</IfModule>",
+                "cloudflare": "Cloudflare already strips/rewrites the Server header; add Transform Rules for X-Powered-By.",
+                "dns": null,
+                "reference": "https://cheatsheetseries.owasp.org/cheatsheets/HTTP_Headers_Cheat_Sheet.html"
+              }
+            },
+            {
+              "check_id": "http.security_txt.valid",
+              "title": "security.txt is published and RFC 9116 compliant",
+              "category": "http_headers",
+              "severity": "PASS",
+              "status": "pass",
+              "weight": 4.0,
+              "description": "A valid security.txt is served with 1 contact(s) and a future Expires field.",
+              "evidence": "1 contact(s), expires 2027-06-01T00:00:00.000Z",
+              "target": "example.com",
+              "references": [
+                "https://owasp.org/www-project-secure-headers/"
+              ],
+              "fingerprint": "73618e5564883198"
+            }
+          ],
+          "data": {
+            "host": "example.com",
+            "start_url": "https://example.com/",
+            "final_url": "https://example.com/",
+            "status_code": 200,
+            "https": true,
+            "redirect_chain": [
+              {
+                "url": "http://example.com/",
+                "status": 301,
+                "location": "https://example.com/",
+                "set_cookie": 0
+              },
+              {
+                "url": "https://example.com/",
+                "status": 200,
+                "location": null,
+                "set_cookie": 2
+              }
+            ],
+            "cookies": [
+              {
+                "name": "session",
+                "attributes": {
+                  "secure": true,
+                  "httponly": true,
+                  "samesite": "Lax"
+                }
+              },
+              {
+                "name": "cart",
+                "attributes": {
+                  "samesite": "Lax"
+                }
+              },
+              {
+                "name": "_ga",
+                "attributes": {
+                  "secure": true,
+                  "samesite": "Lax"
+                }
+              }
+            ],
+            "security_txt": {
+              "url": "https://example.com/.well-known/security.txt",
+              "status": 200,
+              "content_type": "text/plain",
+              "present": true,
+              "fields": {
+                "contact": [
+                  "mailto:security@example.com"
+                ],
+                "expires": [
+                  "2027-06-01T00:00:00.000Z"
+                ]
+              }
+            }
+          }
+        },
+        "tls": {
+          "category": "tls",
+          "error": null,
+          "duration_ms": 884.0,
+          "findings": [
+            {
+              "check_id": "tls.trust",
+              "title": "TLS certificate chain validates against the system trust store",
+              "category": "tls",
+              "severity": "PASS",
+              "status": "pass",
+              "weight": 10.0,
+              "description": "The leaf certificate chains to a trusted root and the hostname matches.",
+              "evidence": "issuer: C=US, O=Let's Encrypt, CN=R11",
+              "target": "example.com",
+              "references": [
+                "https://owasp.org/www-project-secure-headers/"
+              ],
+              "fingerprint": "dbc7fc97602b5b61"
+            },
+            {
+              "check_id": "tls.expiry",
+              "title": "TLS certificate expires in 22.5 days",
+              "category": "tls",
+              "severity": "MEDIUM",
+              "status": "warn",
+              "weight": 9.0,
+              "description": "Certificates must be renewed before they expire; automate renewal and alert at 30 days.",
+              "evidence": "notAfter=2026-12-08 (22.5 days remaining)",
+              "target": "example.com",
+              "references": [
+                "https://owasp.org/www-project-secure-headers/"
+              ],
+              "fingerprint": "4382f2da03c15143",
+              "remediation": {
+                "summary": "Renew the leaf certificate before it expires and monitor the remaining lifetime (alert at 30 days, page at 14).  Automate renewal with ACME.",
+                "nginx": "# certbot\ncertbot renew --quiet --deploy-hook \"nginx -s reload\"\n# cron: 0 3 * * * certbot renew --quiet --deploy-hook \"systemctl reload nginx\"",
+                "apache": "certbot renew --quiet --deploy-hook \"systemctl reload apache2\"",
+                "cloudflare": "Cloudflare managed certificates renew automatically – verify Edge Certificates shows an active cert.",
+                "dns": null,
+                "reference": "https://letsencrypt.org/docs/renewal-reminder/"
+              }
+            },
+            {
+              "check_id": "tls.protocol.tls1_0",
+              "title": "Deprecated TLSv1.0 is supported",
+              "category": "tls",
+              "severity": "HIGH",
+              "status": "fail",
+              "weight": 4.0,
+              "description": "TLSv1.0 is deprecated by RFC 8996 and vulnerable to a long list of downgrade and padding-oracle attacks. Disable it and require TLS 1.2+.",
+              "evidence": "TLSv1.0: accepted",
+              "target": "example.com",
+              "references": [
+                "https://owasp.org/www-project-secure-headers/"
+              ],
+              "fingerprint": "b784823f1256abe7",
+              "remediation": {
+                "summary": "Disable TLS 1.0 and TLS 1.1 (deprecated by RFC 8996) and allow only TLS 1.2/1.3 with modern cipher suites.",
+                "nginx": "ssl_protocols TLSv1.2 TLSv1.3;\nssl_prefer_server_ciphers off;\nssl_ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305;",
+                "apache": "SSLProtocol -all +TLSv1.2 +TLSv1.3\nSSLCipherSuite ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384\nSSLHonorCipherOrder off",
+                "cloudflare": "SSL/TLS → Edge Certificates → Minimum TLS Version: TLS 1.2 (or TLS 1.3).",
+                "dns": null,
+                "reference": "https://www.rfc-editor.org/rfc/rfc8996"
+              }
+            },
+            {
+              "check_id": "tls.protocol.tls1_1",
+              "title": "Deprecated TLSv1.1 is disabled",
+              "category": "tls",
+              "severity": "PASS",
+              "status": "pass",
+              "weight": 4.0,
+              "description": "TLSv1.1 is deprecated by RFC 8996.",
+              "evidence": "TLSv1.1: rejected",
+              "target": "example.com",
+              "references": [
+                "https://owasp.org/www-project-secure-headers/"
+              ],
+              "fingerprint": "6baaa7cef4bfa624"
+            },
+            {
+              "check_id": "tls.protocol.tls13",
+              "title": "TLS 1.3 is enabled",
+              "category": "tls",
+              "severity": "PASS",
+              "status": "pass",
+              "weight": 2.0,
+              "description": "TLS 1.3 removes legacy crypto and is faster.",
+              "evidence": "TLSv1.3: accepted",
+              "target": "example.com",
+              "references": [
+                "https://owasp.org/www-project-secure-headers/"
+              ],
+              "fingerprint": "da3a5630402d64d8"
+            },
+            {
+              "check_id": "tls.cipher",
+              "title": "Negotiated cipher suite is strong",
+              "category": "tls",
+              "severity": "PASS",
+              "status": "pass",
+              "weight": 3.0,
+              "description": "The handshake selected an AEAD / forward-secret suite with adequate strength.",
+              "evidence": "TLS_AES_256_GCM_SHA384 (256 bits, TLSv1.3)",
+              "target": "example.com",
+              "references": [
+                "https://owasp.org/www-project-secure-headers/"
+              ],
+              "fingerprint": "d8894205d0787004"
+            },
+            {
+              "check_id": "tls.certificate_san",
+              "title": "Certificate covers example.com",
+              "category": "tls",
+              "severity": "PASS",
+              "status": "pass",
+              "weight": 4.0,
+              "description": "The hostname is present in the certificate's SAN extension.",
+              "evidence": "SAN: example.com, www.example.com, api.example.com",
+              "target": "example.com",
+              "references": [
+                "https://owasp.org/www-project-secure-headers/"
+              ],
+              "fingerprint": "28ec7d21c14576c2"
+            },
+            {
+              "check_id": "tls.https_redirect",
+              "title": "Plaintext HTTP redirects to HTTPS",
+              "category": "tls",
+              "severity": "PASS",
+              "status": "pass",
+              "weight": 6.0,
+              "description": "Port 80 answers with a redirect to the HTTPS origin.",
+              "evidence": "HTTP 301 → https://example.com/",
+              "target": "example.com",
+              "references": [
+                "https://owasp.org/www-project-secure-headers/"
+              ],
+              "fingerprint": "07c6d03c3d2fc082"
+            }
+          ],
+          "data": {
+            "host": "example.com",
+            "port": 443,
+            "certificate": {
+              "subject": "CN=example.com",
+              "issuer": "C=US, O=Let's Encrypt, CN=R11",
+              "serial": "04a1b2c3d4e5f6",
+              "not_before": "2026-09-09T08:15:00+00:00",
+              "not_after": "2026-12-08T08:14:59+00:00",
+              "days_remaining": 22.5,
+              "san": [
+                "example.com",
+                "www.example.com",
+                "api.example.com"
+              ],
+              "key_type": "EC",
+              "key_size": 256,
+              "signature_algorithm": "ecdsa-with-SHA256",
+              "is_self_signed": false,
+              "is_ca": false,
+              "verified": true,
+              "verification_error": null
+            },
+            "negotiated": {
+              "version": "TLSv1.3",
+              "cipher": "TLS_AES_256_GCM_SHA384",
+              "bits": 256
+            },
+            "protocols": {
+              "TLSv1.0": true,
+              "TLSv1.1": false,
+              "TLSv1.2": true,
+              "TLSv1.3": true
+            },
+            "https_redirect": {
+              "url": "http://example.com/",
+              "status": 301,
+              "location": "https://example.com/",
+              "error": null
+            }
+          }
+        },
+        "dns_email": {
+          "category": "dns_email",
+          "error": null,
+          "duration_ms": 418.0,
+          "findings": [
+            {
+              "check_id": "dns.spf.present",
+              "title": "SPF record is published",
+              "category": "dns_email",
+              "severity": "PASS",
+              "status": "pass",
+              "weight": 8.0,
+              "description": "Exactly one v=spf1 record was found at the zone apex.",
+              "evidence": "v=spf1 include:_spf.google.com include:mail.zendesk.com ~all",
+              "target": "example.com",
+              "references": [
+                "https://owasp.org/www-project-secure-headers/"
+              ],
+              "fingerprint": "a5792ca9f910d728"
+            },
+            {
+              "check_id": "dns.spf.all",
+              "title": "SPF policy soft-fails (~all)",
+              "category": "dns_email",
+              "severity": "LOW",
+              "status": "warn",
+              "weight": 8.0,
+              "description": "SoftFail lets receivers accept the message but mark it as suspicious; move to -all once all legitimate senders are listed.",
+              "evidence": "v=spf1 include:_spf.google.com include:mail.zendesk.com ~all",
+              "target": "example.com",
+              "references": [
+                "https://owasp.org/www-project-secure-headers/"
+              ],
+              "fingerprint": "bedffe6623265566",
+              "remediation": {
+                "summary": "Publish exactly one SPF record per domain, end it with -all (hard fail), keep the DNS-lookup count at or below 10 and remove deprecated mechanisms such as ptr.",
+                "nginx": null,
+                "apache": null,
+                "cloudflare": null,
+                "dns": "example.com.        TXT  \"v=spf1 mx include:_spf.example-provider.com -all\"\n# count lookups first:  https://www.kitterman.com/spf/validate.html\n# >10 lookups? flatten includes or split transactional mail onto a subdomain:\nmail.example.com.   TXT  \"v=spf1 include:_spf.example-provider.com -all\"",
+                "reference": "https://www.rfc-editor.org/rfc/rfc7208"
+              }
+            },
+            {
+              "check_id": "dns.spf.lookups",
+              "title": "SPF exceeds the 10-lookup limit (12)",
+              "category": "dns_email",
+              "severity": "HIGH",
+              "status": "fail",
+              "weight": 5.0,
+              "description": "RFC 7208 caps a policy evaluation at 10 DNS lookups; exceeding it returns permerror and receivers ignore the record, re-enabling spoofing.",
+              "evidence": "12 lookups: include:_spf.google.com; include:mail.zendesk.com; …",
+              "target": "example.com",
+              "references": [
+                "https://owasp.org/www-project-secure-headers/"
+              ],
+              "fingerprint": "854c83a60a009d41",
+              "remediation": {
+                "summary": "Publish exactly one SPF record per domain, end it with -all (hard fail), keep the DNS-lookup count at or below 10 and remove deprecated mechanisms such as ptr.",
+                "nginx": null,
+                "apache": null,
+                "cloudflare": null,
+                "dns": "example.com.        TXT  \"v=spf1 mx include:_spf.example-provider.com -all\"\n# count lookups first:  https://www.kitterman.com/spf/validate.html\n# >10 lookups? flatten includes or split transactional mail onto a subdomain:\nmail.example.com.   TXT  \"v=spf1 include:_spf.example-provider.com -all\"",
+                "reference": "https://www.rfc-editor.org/rfc/rfc7208"
+              }
+            },
+            {
+              "check_id": "dns.dmarc.present",
+              "title": "DMARC record is published",
+              "category": "dns_email",
+              "severity": "PASS",
+              "status": "pass",
+              "weight": 8.0,
+              "description": "A DMARC policy is available to receivers.",
+              "evidence": "v=DMARC1; p=none; rua=mailto:dmarc@example.com",
+              "target": "example.com",
+              "references": [
+                "https://owasp.org/www-project-secure-headers/"
+              ],
+              "fingerprint": "493887f9db8ee528"
+            },
+            {
+              "check_id": "dns.dmarc.policy",
+              "title": "DMARC policy is monitor-only (p=none)",
+              "category": "dns_email",
+              "severity": "MEDIUM",
+              "status": "warn",
+              "weight": 6.0,
+              "description": "p=none requests reports but tells receivers to deliver failing mail, so spoofing still reaches inboxes. Move to quarantine then reject.",
+              "evidence": "v=DMARC1; p=none; rua=mailto:dmarc@example.com",
+              "target": "example.com",
+              "references": [
+                "https://owasp.org/www-project-secure-headers/"
+              ],
+              "fingerprint": "8c8aafd1d1600b0b",
+              "remediation": {
+                "summary": "Publish a DMARC record with p=quarantine or p=reject and rua reporting so you can detect spoofing attempts and receive aggregate reports.",
+                "nginx": null,
+                "apache": null,
+                "cloudflare": "Cloudflare Email Security / DNS → add the TXT record at _dmarc.example.com. Keep Email Routing's own SPF/DKIM records intact.",
+                "dns": "_dmarc.example.com.  TXT  \"v=DMARC1; p=reject; sp=reject; adkim=s; aspf=s; pct=100; fo=1; rua=mailto:dmarc-reports@example.com; ruf=mailto:dmarc-forensics@example.com\"\n# rollout: start with p=none, review rua reports for 2-4 weeks, then move to p=quarantine and finally p=reject",
+                "reference": "https://www.rfc-editor.org/rfc/rfc7489"
+              }
+            },
+            {
+              "check_id": "dns.caa.present",
+              "title": "CAA records restrict certificate issuance",
+              "category": "dns_email",
+              "severity": "PASS",
+              "status": "pass",
+              "weight": 4.0,
+              "description": "Only the listed CAs may issue certificates for this domain.",
+              "evidence": "0 issue \"letsencrypt.org\"; 0 iodef \"mailto:security@example.com\"",
+              "target": "example.com",
+              "references": [
+                "https://owasp.org/www-project-secure-headers/"
+              ],
+              "fingerprint": "9fdcf2c879642411"
+            },
+            {
+              "check_id": "dns.dnssec.missing",
+              "title": "DNSSEC is not enabled",
+              "category": "dns_email",
+              "severity": "LOW",
+              "status": "warn",
+              "weight": 4.0,
+              "description": "Unsigned zones are vulnerable to cache-poisoning and forged DNS answers on the resolution path.",
+              "evidence": "DNSKEY: none; DS: none",
+              "target": "example.com",
+              "references": [
+                "https://owasp.org/www-project-secure-headers/"
+              ],
+              "fingerprint": "e983a7f6e869ce19",
+              "remediation": {
+                "summary": "Enable DNSSEC so resolvers can cryptographically validate your zone: publish DNSKEY/RRSIG in the zone and the matching DS record at the registrar/parent.",
+                "nginx": null,
+                "apache": null,
+                "cloudflare": "DNS → Settings → DNSSEC → Enable DNSSEC, then add the DS record at your registrar.",
+                "dns": "# after enabling DNSSEC at the provider, publish the DS record at the parent:\nexample.com.  IN DS  <keytag> <algorithm> <digest-type> <digest>\n# verify:  dig +dnssec DNSKEY example.com  /  dig +trace DS example.com",
+                "reference": "https://www.rfc-editor.org/rfc/rfc4033"
+              }
+            },
+            {
+              "check_id": "dns.cname.dangling",
+              "title": "Dangling CNAME to a non-existent host (GitHub Pages)",
+              "category": "dns_email",
+              "severity": "CRITICAL",
+              "status": "fail",
+              "weight": 10.0,
+              "description": "status.example.com is a CNAME to status-old.github.io, which does not resolve (NXDOMAIN). Whoever registers that endpoint inherits your hostname — remove or repoint the record.",
+              "evidence": "status.example.com CNAME status-old.github.io → NXDOMAIN",
+              "target": "example.com",
+              "references": [
+                "https://owasp.org/www-project-secure-headers/"
+              ],
+              "fingerprint": "cc8bf08ca67ad295",
+              "remediation": {
+                "summary": "A CNAME points at a third-party endpoint that no longer exists — an attacker can often claim it and serve content on your domain.  Remove or repoint the record, or re-claim the service.",
+                "nginx": null,
+                "apache": null,
+                "cloudflare": "DNS → Records → delete or repoint the dangling CNAME, then purge the edge cache.",
+                "dns": "example.com.   IN CNAME   <active-provider-endpoint>\n# or delete the record entirely:\n# dig +short example.com CNAME  # confirm the chain is gone",
+                "reference": "https://owasp.org/www-community/attacks/Subdomain_takeover"
+              }
+            },
+            {
+              "check_id": "dns.mta_sts.missing",
+              "title": "MTA-STS is not configured",
+              "category": "dns_email",
+              "severity": "INFO",
+              "status": "info",
+              "weight": 1.0,
+              "description": "MTA-STS (RFC 8461) prevents SMTP downgrade attacks for inbound mail.",
+              "evidence": "TXT _mta-sts.example.com: none",
+              "target": "example.com",
+              "references": [
+                "https://owasp.org/www-project-secure-headers/"
+              ],
+              "fingerprint": "b29bde2d83c25c8b"
+            }
+          ],
+          "data": {
+            "domain": "example.com",
+            "nameservers": [
+              "1.1.1.1",
+              "8.8.8.8"
+            ],
+            "spf": {
+              "records": [
+                "v=spf1 include:_spf.google.com include:mail.zendesk.com ~all"
+              ],
+              "lookup_count": 12,
+              "lookup_detail": [
+                "include:_spf.google.com",
+                "include:mail.zendesk.com",
+                "include:_netblocks.google.com",
+                "redirect:_spf.example.net"
+              ]
+            },
+            "dmarc": {
+              "source": "_dmarc.example.com",
+              "records": [
+                "v=DMARC1; p=none; rua=mailto:dmarc@example.com"
+              ],
+              "inherited": false,
+              "tags": {
+                "v": "DMARC1",
+                "p": "none",
+                "rua": "mailto:dmarc@example.com"
+              }
+            },
+            "caa": {
+              "source": "example.com",
+              "records": [
+                "0 issue \"letsencrypt.org\"",
+                "0 iodef \"mailto:security@example.com\""
+              ]
+            },
+            "dnssec": {
+              "dnskey": {
+                "values": []
+              },
+              "ds": {
+                "values": []
+              }
+            },
+            "cname_chain": [
+              {
+                "name": "status.example.com",
+                "target": "status-old.github.io",
+                "service": "GitHub Pages",
+                "claim_url": "https://github.com/settings/pages",
+                "resolves": false,
+                "resolution_error": "NXDOMAIN",
+                "unclaimed_signature": null
+              }
+            ]
+          }
+        }
+      },
+      "findings": [
+        {
+          "check_id": "http.hsts.max_age_short",
+          "title": "HSTS max-age is shorter than 31536000 seconds",
+          "category": "http_headers",
+          "severity": "MEDIUM",
+          "status": "warn",
+          "weight": 9.0,
+          "description": "A short HSTS lifetime leaves visitors unprotected between policy expiry and renewal. Use at least one year (31536000).",
+          "evidence": "max-age=86400 (1.0 days)",
+          "target": "example.com",
+          "references": [
+            "https://owasp.org/www-project-secure-headers/"
+          ],
+          "fingerprint": "dbd09d2a45a3bfb1",
+          "remediation": {
+            "summary": "Send Strict-Transport-Security on every HTTPS response with a max-age of at least one year, includeSubDomains and (once you are confident) preload. HSTS closes the SSL-stripping window for returning visitors.",
+            "nginx": "add_header Strict-Transport-Security \"max-age=31536000; includeSubDomains; preload\" always;",
+            "apache": "<IfModule mod_headers.c>\n    Header always set Strict-Transport-Security \"max-age=31536000; includeSubDomains; preload\"\n</IfModule>",
+            "cloudflare": "SSL/TLS → Edge Certificates → HSTS: enable, Max-Age 12 months, Include subdomains = On, Preload = On, No-Sniff header = On.",
+            "dns": null,
+            "reference": "https://owasp.org/www-project-secure-headers/#strict-transport-security"
+          }
+        },
+        {
+          "check_id": "http.hsts.include_subdomains",
+          "title": "HSTS includeSubDomains is missing",
+          "category": "http_headers",
+          "severity": "LOW",
+          "status": "warn",
+          "weight": 3.0,
+          "description": "includeSubDomains prevents attackers from downgrading any sub-domain, including forgotten staging hosts.",
+          "evidence": "max-age=86400",
+          "target": "example.com",
+          "references": [
+            "https://owasp.org/www-project-secure-headers/"
+          ],
+          "fingerprint": "4560349ee95f72e9",
+          "remediation": {
+            "summary": "Send Strict-Transport-Security on every HTTPS response with a max-age of at least one year, includeSubDomains and (once you are confident) preload. HSTS closes the SSL-stripping window for returning visitors.",
+            "nginx": "add_header Strict-Transport-Security \"max-age=31536000; includeSubDomains; preload\" always;",
+            "apache": "<IfModule mod_headers.c>\n    Header always set Strict-Transport-Security \"max-age=31536000; includeSubDomains; preload\"\n</IfModule>",
+            "cloudflare": "SSL/TLS → Edge Certificates → HSTS: enable, Max-Age 12 months, Include subdomains = On, Preload = On, No-Sniff header = On.",
+            "dns": null,
+            "reference": "https://owasp.org/www-project-secure-headers/#strict-transport-security"
+          }
+        },
+        {
+          "check_id": "http.csp.present",
+          "title": "Content-Security-Policy is enforced",
+          "category": "http_headers",
+          "severity": "PASS",
+          "status": "pass",
+          "weight": 10.0,
+          "description": "An enforced CSP limits which sources the browser may load resources from.",
+          "evidence": "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.example.net",
+          "target": "example.com",
+          "references": [
+            "https://owasp.org/www-project-secure-headers/"
+          ],
+          "fingerprint": "72266f278f8470d5"
+        },
+        {
+          "check_id": "http.csp.unsafe_inline",
+          "title": "CSP allows 'unsafe-inline' for scripts",
+          "category": "http_headers",
+          "severity": "MEDIUM",
+          "status": "warn",
+          "weight": 3.0,
+          "description": "'unsafe-inline' re-enables inline <script> execution, which neutralises most of CSP's XSS protection. Replace inline handlers with nonces or hashes.",
+          "evidence": "script-src 'self' 'unsafe-inline' https://cdn.example.net",
+          "target": "example.com",
+          "references": [
+            "https://owasp.org/www-project-secure-headers/"
+          ],
+          "fingerprint": "281f4f1953e09f03",
+          "remediation": {
+            "summary": "Deploy a restrictive Content-Security-Policy built from a nonce or hash based script-src, drop 'unsafe-inline'/'unsafe-eval', and lock down framing with frame-ancestors.  Roll it out with Content-Security-Policy-Report-Only first.",
+            "nginx": "add_header Content-Security-Policy \"default-src 'self'; script-src 'self' 'nonce-$request_id'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'self'; form-action 'self'; upgrade-insecure-requests\" always;",
+            "apache": "<IfModule mod_headers.c>\n    Header always set Content-Security-Policy \"default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'self'; frame-ancestors 'self'; form-action 'self'\"\n</IfModule>",
+            "cloudflare": "Cloudflare does not synthesise a CSP. Inject it with a Transform Rule (Modify Response Header → Set → Content-Security-Policy) or at your origin.",
+            "dns": null,
+            "reference": "https://owasp.org/www-project-secure-headers/#content-security-policy"
+          }
+        },
+        {
+          "check_id": "http.x_content_type_options.nosniff",
+          "title": "X-Content-Type-Options: nosniff is set",
+          "category": "http_headers",
+          "severity": "PASS",
+          "status": "pass",
+          "weight": 6.0,
+          "description": "MIME sniffing is disabled, preventing content-type confusion attacks.",
+          "evidence": "nosniff",
+          "target": "example.com",
+          "references": [
+            "https://owasp.org/www-project-secure-headers/"
+          ],
+          "fingerprint": "4175bacef75367c9"
+        },
+        {
+          "check_id": "http.x_frame_options.valid",
+          "title": "X-Frame-Options: SAMEORIGIN is set",
+          "category": "http_headers",
+          "severity": "PASS",
+          "status": "pass",
+          "weight": 5.0,
+          "description": "Framing by third-party origins is blocked.",
+          "evidence": "SAMEORIGIN",
+          "target": "example.com",
+          "references": [
+            "https://owasp.org/www-project-secure-headers/"
+          ],
+          "fingerprint": "3c80293f4b8ae0ee"
+        },
+        {
+          "check_id": "http.referrer_policy.valid",
+          "title": "Referrer-Policy restricts referrer leakage",
+          "category": "http_headers",
+          "severity": "PASS",
+          "status": "pass",
+          "weight": 6.0,
+          "description": "Cross-origin requests only receive the origin, not the full path.",
+          "evidence": "strict-origin-when-cross-origin",
+          "target": "example.com",
+          "references": [
+            "https://owasp.org/www-project-secure-headers/"
+          ],
+          "fingerprint": "bbc43de49e347e7b"
+        },
+        {
+          "check_id": "http.permissions_policy.missing",
+          "title": "Permissions-Policy header is missing",
+          "category": "http_headers",
+          "severity": "LOW",
+          "status": "warn",
+          "weight": 5.0,
+          "description": "Without Permissions-Policy, embedded third-party frames may request camera, microphone, geolocation and other powerful features.",
+          "evidence": "Permissions-Policy: absent",
+          "target": "example.com",
+          "references": [
+            "https://owasp.org/www-project-secure-headers/"
+          ],
+          "fingerprint": "6a4ef0bdae8bef10",
+          "remediation": {
+            "summary": "Restrict powerful browser features with Permissions-Policy.  Deny everything you do not explicitly need and never grant camera/microphone/geolocation to '*'.",
+            "nginx": "add_header Permissions-Policy \"accelerometer=(), camera=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=()\" always;",
+            "apache": "Header always set Permissions-Policy \"accelerometer=(), camera=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=()\"",
+            "cloudflare": "Transform Rule → Set response header Permissions-Policy with an explicit allow-list.",
+            "dns": null,
+            "reference": "https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Permissions-Policy"
+          }
+        },
+        {
+          "check_id": "http.coop.present",
+          "title": "Cross-Origin-Opener-Policy: same-origin is set",
+          "category": "http_headers",
+          "severity": "PASS",
+          "status": "pass",
+          "weight": 4.0,
+          "description": "The browsing context is isolated from cross-origin openers.",
+          "evidence": "same-origin",
+          "target": "example.com",
+          "references": [
+            "https://owasp.org/www-project-secure-headers/"
+          ],
+          "fingerprint": "c0a706e2bd987278"
+        },
+        {
+          "check_id": "http.cookies.secure",
+          "title": "Cookies are missing the Secure flag",
+          "category": "http_headers",
+          "severity": "HIGH",
+          "status": "fail",
+          "weight": 8.0,
+          "description": "Cookies without Secure are transmitted over plaintext HTTP and can be captured by any on-path attacker. Session cookies must be Secure.",
+          "evidence": "1/3 cookie(s) without Secure: cart",
+          "target": "example.com",
+          "references": [
+            "https://owasp.org/www-project-secure-headers/"
+          ],
+          "fingerprint": "9117c6016d9bac53",
+          "remediation": {
+            "summary": "Every session cookie needs Secure + HttpOnly + SameSite.  Use the __Host- prefix (requires Secure, Path=/ and no Domain attribute) for authentication cookies.",
+            "nginx": "# nginx ≥ 1.19.3 – rewrite flags on all proxied cookies\nproxy_cookie_flags ~ secure httponly samesite=strict;",
+            "apache": "# mod_headers – append the flags if missing\nHeader edit Set-Cookie ^(.*)$ \"$1; Secure; HttpOnly; SameSite=Lax\"",
+            "cloudflare": "Cloudflare cannot rewrite Set-Cookie; fix it at the origin or in the application framework.",
+            "dns": null,
+            "reference": "https://owasp.org/www-community/controls/SecureCookieAttribute"
+          }
+        },
+        {
+          "check_id": "http.cookies.httponly",
+          "title": "All cookies carry the HttpOnly flag",
+          "category": "http_headers",
+          "severity": "PASS",
+          "status": "pass",
+          "weight": 5.0,
+          "description": "HttpOnly stops JavaScript from reading the cookie, blunting session hijacking after an XSS.",
+          "evidence": "3 cookie(s) verified",
+          "target": "example.com",
+          "references": [
+            "https://owasp.org/www-project-secure-headers/"
+          ],
+          "fingerprint": "55fecba2c74632af"
+        },
+        {
+          "check_id": "http.header.server",
+          "title": "Server header discloses software version",
+          "category": "http_headers",
+          "severity": "LOW",
+          "status": "warn",
+          "weight": 2.0,
+          "description": "Version banners let attackers map the target to known CVEs; hide the token and patch promptly.",
+          "evidence": "Server: nginx/1.18.0",
+          "target": "example.com",
+          "references": [
+            "https://owasp.org/www-project-secure-headers/"
+          ],
+          "fingerprint": "52d1de4c3d6f552f",
+          "remediation": {
+            "summary": "Remove version banners from Server, X-Powered-By and X-AspNet-Version.  Banner grabbing is the first step of most targeted exploitation playbooks.",
+            "nginx": "# nginx.conf (http block)\nserver_tokens off;\nmore_clear_headers Server X-Powered-By X-AspNet-Version X-AspNetMvc-Version;  # headers-more module\n# without headers-more:\nproxy_hide_header X-Powered-By;",
+            "apache": "ServerTokens Prod\nServerSignature Off\n<IfModule mod_headers.c>\n    Header unset X-Powered-By\n    Header unset X-AspNet-Version\n    Header unset Server\n</IfModule>",
+            "cloudflare": "Cloudflare already strips/rewrites the Server header; add Transform Rules for X-Powered-By.",
+            "dns": null,
+            "reference": "https://cheatsheetseries.owasp.org/cheatsheets/HTTP_Headers_Cheat_Sheet.html"
+          }
+        },
+        {
+          "check_id": "http.security_txt.valid",
+          "title": "security.txt is published and RFC 9116 compliant",
+          "category": "http_headers",
+          "severity": "PASS",
+          "status": "pass",
+          "weight": 4.0,
+          "description": "A valid security.txt is served with 1 contact(s) and a future Expires field.",
+          "evidence": "1 contact(s), expires 2027-06-01T00:00:00.000Z",
+          "target": "example.com",
+          "references": [
+            "https://owasp.org/www-project-secure-headers/"
+          ],
+          "fingerprint": "73618e5564883198"
+        },
+        {
+          "check_id": "tls.trust",
+          "title": "TLS certificate chain validates against the system trust store",
+          "category": "tls",
+          "severity": "PASS",
+          "status": "pass",
+          "weight": 10.0,
+          "description": "The leaf certificate chains to a trusted root and the hostname matches.",
+          "evidence": "issuer: C=US, O=Let's Encrypt, CN=R11",
+          "target": "example.com",
+          "references": [
+            "https://owasp.org/www-project-secure-headers/"
+          ],
+          "fingerprint": "dbc7fc97602b5b61"
+        },
+        {
+          "check_id": "tls.expiry",
+          "title": "TLS certificate expires in 22.5 days",
+          "category": "tls",
+          "severity": "MEDIUM",
+          "status": "warn",
+          "weight": 9.0,
+          "description": "Certificates must be renewed before they expire; automate renewal and alert at 30 days.",
+          "evidence": "notAfter=2026-12-08 (22.5 days remaining)",
+          "target": "example.com",
+          "references": [
+            "https://owasp.org/www-project-secure-headers/"
+          ],
+          "fingerprint": "4382f2da03c15143",
+          "remediation": {
+            "summary": "Renew the leaf certificate before it expires and monitor the remaining lifetime (alert at 30 days, page at 14).  Automate renewal with ACME.",
+            "nginx": "# certbot\ncertbot renew --quiet --deploy-hook \"nginx -s reload\"\n# cron: 0 3 * * * certbot renew --quiet --deploy-hook \"systemctl reload nginx\"",
+            "apache": "certbot renew --quiet --deploy-hook \"systemctl reload apache2\"",
+            "cloudflare": "Cloudflare managed certificates renew automatically – verify Edge Certificates shows an active cert.",
+            "dns": null,
+            "reference": "https://letsencrypt.org/docs/renewal-reminder/"
+          }
+        },
+        {
+          "check_id": "tls.protocol.tls1_0",
+          "title": "Deprecated TLSv1.0 is supported",
+          "category": "tls",
+          "severity": "HIGH",
+          "status": "fail",
+          "weight": 4.0,
+          "description": "TLSv1.0 is deprecated by RFC 8996 and vulnerable to a long list of downgrade and padding-oracle attacks. Disable it and require TLS 1.2+.",
+          "evidence": "TLSv1.0: accepted",
+          "target": "example.com",
+          "references": [
+            "https://owasp.org/www-project-secure-headers/"
+          ],
+          "fingerprint": "b784823f1256abe7",
+          "remediation": {
+            "summary": "Disable TLS 1.0 and TLS 1.1 (deprecated by RFC 8996) and allow only TLS 1.2/1.3 with modern cipher suites.",
+            "nginx": "ssl_protocols TLSv1.2 TLSv1.3;\nssl_prefer_server_ciphers off;\nssl_ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305;",
+            "apache": "SSLProtocol -all +TLSv1.2 +TLSv1.3\nSSLCipherSuite ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384\nSSLHonorCipherOrder off",
+            "cloudflare": "SSL/TLS → Edge Certificates → Minimum TLS Version: TLS 1.2 (or TLS 1.3).",
+            "dns": null,
+            "reference": "https://www.rfc-editor.org/rfc/rfc8996"
+          }
+        },
+        {
+          "check_id": "tls.protocol.tls1_1",
+          "title": "Deprecated TLSv1.1 is disabled",
+          "category": "tls",
+          "severity": "PASS",
+          "status": "pass",
+          "weight": 4.0,
+          "description": "TLSv1.1 is deprecated by RFC 8996.",
+          "evidence": "TLSv1.1: rejected",
+          "target": "example.com",
+          "references": [
+            "https://owasp.org/www-project-secure-headers/"
+          ],
+          "fingerprint": "6baaa7cef4bfa624"
+        },
+        {
+          "check_id": "tls.protocol.tls13",
+          "title": "TLS 1.3 is enabled",
+          "category": "tls",
+          "severity": "PASS",
+          "status": "pass",
+          "weight": 2.0,
+          "description": "TLS 1.3 removes legacy crypto and is faster.",
+          "evidence": "TLSv1.3: accepted",
+          "target": "example.com",
+          "references": [
+            "https://owasp.org/www-project-secure-headers/"
+          ],
+          "fingerprint": "da3a5630402d64d8"
+        },
+        {
+          "check_id": "tls.cipher",
+          "title": "Negotiated cipher suite is strong",
+          "category": "tls",
+          "severity": "PASS",
+          "status": "pass",
+          "weight": 3.0,
+          "description": "The handshake selected an AEAD / forward-secret suite with adequate strength.",
+          "evidence": "TLS_AES_256_GCM_SHA384 (256 bits, TLSv1.3)",
+          "target": "example.com",
+          "references": [
+            "https://owasp.org/www-project-secure-headers/"
+          ],
+          "fingerprint": "d8894205d0787004"
+        },
+        {
+          "check_id": "tls.certificate_san",
+          "title": "Certificate covers example.com",
+          "category": "tls",
+          "severity": "PASS",
+          "status": "pass",
+          "weight": 4.0,
+          "description": "The hostname is present in the certificate's SAN extension.",
+          "evidence": "SAN: example.com, www.example.com, api.example.com",
+          "target": "example.com",
+          "references": [
+            "https://owasp.org/www-project-secure-headers/"
+          ],
+          "fingerprint": "28ec7d21c14576c2"
+        },
+        {
+          "check_id": "tls.https_redirect",
+          "title": "Plaintext HTTP redirects to HTTPS",
+          "category": "tls",
+          "severity": "PASS",
+          "status": "pass",
+          "weight": 6.0,
+          "description": "Port 80 answers with a redirect to the HTTPS origin.",
+          "evidence": "HTTP 301 → https://example.com/",
+          "target": "example.com",
+          "references": [
+            "https://owasp.org/www-project-secure-headers/"
+          ],
+          "fingerprint": "07c6d03c3d2fc082"
+        },
+        {
+          "check_id": "dns.spf.present",
+          "title": "SPF record is published",
+          "category": "dns_email",
+          "severity": "PASS",
+          "status": "pass",
+          "weight": 8.0,
+          "description": "Exactly one v=spf1 record was found at the zone apex.",
+          "evidence": "v=spf1 include:_spf.google.com include:mail.zendesk.com ~all",
+          "target": "example.com",
+          "references": [
+            "https://owasp.org/www-project-secure-headers/"
+          ],
+          "fingerprint": "a5792ca9f910d728"
+        },
+        {
+          "check_id": "dns.spf.all",
+          "title": "SPF policy soft-fails (~all)",
+          "category": "dns_email",
+          "severity": "LOW",
+          "status": "warn",
+          "weight": 8.0,
+          "description": "SoftFail lets receivers accept the message but mark it as suspicious; move to -all once all legitimate senders are listed.",
+          "evidence": "v=spf1 include:_spf.google.com include:mail.zendesk.com ~all",
+          "target": "example.com",
+          "references": [
+            "https://owasp.org/www-project-secure-headers/"
+          ],
+          "fingerprint": "bedffe6623265566",
+          "remediation": {
+            "summary": "Publish exactly one SPF record per domain, end it with -all (hard fail), keep the DNS-lookup count at or below 10 and remove deprecated mechanisms such as ptr.",
+            "nginx": null,
+            "apache": null,
+            "cloudflare": null,
+            "dns": "example.com.        TXT  \"v=spf1 mx include:_spf.example-provider.com -all\"\n# count lookups first:  https://www.kitterman.com/spf/validate.html\n# >10 lookups? flatten includes or split transactional mail onto a subdomain:\nmail.example.com.   TXT  \"v=spf1 include:_spf.example-provider.com -all\"",
+            "reference": "https://www.rfc-editor.org/rfc/rfc7208"
+          }
+        },
+        {
+          "check_id": "dns.spf.lookups",
+          "title": "SPF exceeds the 10-lookup limit (12)",
+          "category": "dns_email",
+          "severity": "HIGH",
+          "status": "fail",
+          "weight": 5.0,
+          "description": "RFC 7208 caps a policy evaluation at 10 DNS lookups; exceeding it returns permerror and receivers ignore the record, re-enabling spoofing.",
+          "evidence": "12 lookups: include:_spf.google.com; include:mail.zendesk.com; …",
+          "target": "example.com",
+          "references": [
+            "https://owasp.org/www-project-secure-headers/"
+          ],
+          "fingerprint": "854c83a60a009d41",
+          "remediation": {
+            "summary": "Publish exactly one SPF record per domain, end it with -all (hard fail), keep the DNS-lookup count at or below 10 and remove deprecated mechanisms such as ptr.",
+            "nginx": null,
+            "apache": null,
+            "cloudflare": null,
+            "dns": "example.com.        TXT  \"v=spf1 mx include:_spf.example-provider.com -all\"\n# count lookups first:  https://www.kitterman.com/spf/validate.html\n# >10 lookups? flatten includes or split transactional mail onto a subdomain:\nmail.example.com.   TXT  \"v=spf1 include:_spf.example-provider.com -all\"",
+            "reference": "https://www.rfc-editor.org/rfc/rfc7208"
+          }
+        },
+        {
+          "check_id": "dns.dmarc.present",
+          "title": "DMARC record is published",
+          "category": "dns_email",
+          "severity": "PASS",
+          "status": "pass",
+          "weight": 8.0,
+          "description": "A DMARC policy is available to receivers.",
+          "evidence": "v=DMARC1; p=none; rua=mailto:dmarc@example.com",
+          "target": "example.com",
+          "references": [
+            "https://owasp.org/www-project-secure-headers/"
+          ],
+          "fingerprint": "493887f9db8ee528"
+        },
+        {
+          "check_id": "dns.dmarc.policy",
+          "title": "DMARC policy is monitor-only (p=none)",
+          "category": "dns_email",
+          "severity": "MEDIUM",
+          "status": "warn",
+          "weight": 6.0,
+          "description": "p=none requests reports but tells receivers to deliver failing mail, so spoofing still reaches inboxes. Move to quarantine then reject.",
+          "evidence": "v=DMARC1; p=none; rua=mailto:dmarc@example.com",
+          "target": "example.com",
+          "references": [
+            "https://owasp.org/www-project-secure-headers/"
+          ],
+          "fingerprint": "8c8aafd1d1600b0b",
+          "remediation": {
+            "summary": "Publish a DMARC record with p=quarantine or p=reject and rua reporting so you can detect spoofing attempts and receive aggregate reports.",
+            "nginx": null,
+            "apache": null,
+            "cloudflare": "Cloudflare Email Security / DNS → add the TXT record at _dmarc.example.com. Keep Email Routing's own SPF/DKIM records intact.",
+            "dns": "_dmarc.example.com.  TXT  \"v=DMARC1; p=reject; sp=reject; adkim=s; aspf=s; pct=100; fo=1; rua=mailto:dmarc-reports@example.com; ruf=mailto:dmarc-forensics@example.com\"\n# rollout: start with p=none, review rua reports for 2-4 weeks, then move to p=quarantine and finally p=reject",
+            "reference": "https://www.rfc-editor.org/rfc/rfc7489"
+          }
+        },
+        {
+          "check_id": "dns.caa.present",
+          "title": "CAA records restrict certificate issuance",
+          "category": "dns_email",
+          "severity": "PASS",
+          "status": "pass",
+          "weight": 4.0,
+          "description": "Only the listed CAs may issue certificates for this domain.",
+          "evidence": "0 issue \"letsencrypt.org\"; 0 iodef \"mailto:security@example.com\"",
+          "target": "example.com",
+          "references": [
+            "https://owasp.org/www-project-secure-headers/"
+          ],
+          "fingerprint": "9fdcf2c879642411"
+        },
+        {
+          "check_id": "dns.dnssec.missing",
+          "title": "DNSSEC is not enabled",
+          "category": "dns_email",
+          "severity": "LOW",
+          "status": "warn",
+          "weight": 4.0,
+          "description": "Unsigned zones are vulnerable to cache-poisoning and forged DNS answers on the resolution path.",
+          "evidence": "DNSKEY: none; DS: none",
+          "target": "example.com",
+          "references": [
+            "https://owasp.org/www-project-secure-headers/"
+          ],
+          "fingerprint": "e983a7f6e869ce19",
+          "remediation": {
+            "summary": "Enable DNSSEC so resolvers can cryptographically validate your zone: publish DNSKEY/RRSIG in the zone and the matching DS record at the registrar/parent.",
+            "nginx": null,
+            "apache": null,
+            "cloudflare": "DNS → Settings → DNSSEC → Enable DNSSEC, then add the DS record at your registrar.",
+            "dns": "# after enabling DNSSEC at the provider, publish the DS record at the parent:\nexample.com.  IN DS  <keytag> <algorithm> <digest-type> <digest>\n# verify:  dig +dnssec DNSKEY example.com  /  dig +trace DS example.com",
+            "reference": "https://www.rfc-editor.org/rfc/rfc4033"
+          }
+        },
+        {
+          "check_id": "dns.cname.dangling",
+          "title": "Dangling CNAME to a non-existent host (GitHub Pages)",
+          "category": "dns_email",
+          "severity": "CRITICAL",
+          "status": "fail",
+          "weight": 10.0,
+          "description": "status.example.com is a CNAME to status-old.github.io, which does not resolve (NXDOMAIN). Whoever registers that endpoint inherits your hostname — remove or repoint the record.",
+          "evidence": "status.example.com CNAME status-old.github.io → NXDOMAIN",
+          "target": "example.com",
+          "references": [
+            "https://owasp.org/www-project-secure-headers/"
+          ],
+          "fingerprint": "cc8bf08ca67ad295",
+          "remediation": {
+            "summary": "A CNAME points at a third-party endpoint that no longer exists — an attacker can often claim it and serve content on your domain.  Remove or repoint the record, or re-claim the service.",
+            "nginx": null,
+            "apache": null,
+            "cloudflare": "DNS → Records → delete or repoint the dangling CNAME, then purge the edge cache.",
+            "dns": "example.com.   IN CNAME   <active-provider-endpoint>\n# or delete the record entirely:\n# dig +short example.com CNAME  # confirm the chain is gone",
+            "reference": "https://owasp.org/www-community/attacks/Subdomain_takeover"
+          }
+        },
+        {
+          "check_id": "dns.mta_sts.missing",
+          "title": "MTA-STS is not configured",
+          "category": "dns_email",
+          "severity": "INFO",
+          "status": "info",
+          "weight": 1.0,
+          "description": "MTA-STS (RFC 8461) prevents SMTP downgrade attacks for inbound mail.",
+          "evidence": "TXT _mta-sts.example.com: none",
+          "target": "example.com",
+          "references": [
+            "https://owasp.org/www-project-secure-headers/"
+          ],
+          "fingerprint": "b29bde2d83c25c8b"
+        }
+      ]
+    }
+  ]
+}
