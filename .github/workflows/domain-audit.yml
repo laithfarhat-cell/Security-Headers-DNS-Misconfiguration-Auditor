@@ -1,9 +1,16 @@
 name: Domain Security Audit
 
 # Continuous security-posture monitoring for the domains you own.
-# Copy this workflow into your repository, put your domains in domains.txt and
-# it will audit them weekly, publish a report artifact and push SARIF results
-# into the GitHub Security tab (Code Scanning).
+#
+#  * Add your domains to `domains.txt` (copy `domains.example.txt`) or pass the
+#    `domains` input when running the workflow manually.
+#  * With no targets configured the audit is skipped with a notice instead of
+#    failing the build, so the workflow is green out of the box.
+#  * Results are published as SARIF in the Security tab and as report artifacts.
+#
+# Optional repository variables (Settings → Secrets and variables → Actions → Variables):
+#   AUDIT_FAIL_UNDER        minimum overall score (default: 85, 0 disables the score gate)
+#   AUDIT_FAIL_ON_SEVERITY  critical | high | medium | low | none (default: critical)
 
 on:
   schedule:
@@ -16,9 +23,13 @@ on:
         required: false
         default: ""
       fail_under:
-        description: "Minimum overall score (0 disables the gate)"
+        description: "Minimum overall score, 0 disables the score gate (default: 85)"
         required: false
-        default: "85"
+        default: ""
+      fail_on_severity:
+        description: "Fail on findings at/above this severity: critical, high, medium, low, none"
+        required: false
+        default: ""
   push:
     branches: [main]
     paths:
@@ -28,6 +39,19 @@ on:
       - "auditors/**"
       - "core/**"
       - "reporters/**"
+      - "pyproject.toml"
+      - "requirements.txt"
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/domain-audit.yml"
+      - "main.py"
+      - "auditors/**"
+      - "core/**"
+      - "reporters/**"
+      - "tests/**"
+      - "pyproject.toml"
+      - "requirements.txt"
 
 permissions:
   contents: read
@@ -35,15 +59,17 @@ permissions:
   actions: read
 
 concurrency:
-  group: domain-audit-${{ github.ref }}
+  group: domain-audit-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 env:
-  FAIL_UNDER: ${{ github.event.inputs.fail_under || '85' }}
+  # Dispatch inputs win, then repository variables, then sensible defaults.
+  FAIL_UNDER: ${{ github.event.inputs.fail_under || vars.AUDIT_FAIL_UNDER || '85' }}
+  FAIL_ON_SEVERITY: ${{ github.event.inputs.fail_on_severity || vars.AUDIT_FAIL_ON_SEVERITY || 'critical' }}
 
 jobs:
   # ---------------------------------------------------------------------------
-  # 1. Lint + unit tests for the auditor itself.
+  # 1. Lint + unit tests for the auditor itself (runs on pushes and pull requests).
   # ---------------------------------------------------------------------------
   quality:
     name: Lint & unit tests
@@ -72,11 +98,84 @@ jobs:
         run: pytest -q
 
   # ---------------------------------------------------------------------------
-  # 2. Audit the production domains.
+  # 2. Resolve the target list. Never fails: an empty list simply skips the audit
+  #    so that a repository without configured domains stays green.
+  # ---------------------------------------------------------------------------
+  preflight:
+    name: Resolve targets
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      has_targets: ${{ steps.resolve.outputs.has_targets }}
+      count: ${{ steps.resolve.outputs.count }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Resolve target list
+        id: resolve
+        shell: bash
+        env:
+          INPUT_DOMAINS: ${{ github.event.inputs.domains }}
+        run: |
+          set -euo pipefail
+
+          normalise() {
+            # Strip comments, CRLF, surrounding whitespace and blank lines.
+            sed 's/#.*//' | tr -d '\r' \
+              | sed 's/^[[:space:]]*//; s/[[:space:]]*$//' \
+              | grep -v '^$' || true
+          }
+
+          : > targets.txt
+          if [ -n "${INPUT_DOMAINS:-}" ]; then
+            printf '%s\n' "$INPUT_DOMAINS" | tr ',' '\n' | normalise >> targets.txt
+          elif [ -f domains.txt ]; then
+            normalise < domains.txt >> targets.txt
+          fi
+          # De-duplicate while preserving order.
+          awk '!seen[$0]++' targets.txt > targets.dedup && mv targets.dedup targets.txt
+
+          count=$(wc -l < targets.txt | tr -d ' ')
+          echo "count=${count}" >> "$GITHUB_OUTPUT"
+
+          if [ "${count}" -gt 0 ]; then
+            echo "has_targets=true" >> "$GITHUB_OUTPUT"
+            {
+              echo "### 🎯 Targets (${count})"
+              echo
+              sed 's/^/- `&`/' targets.txt
+            } >> "$GITHUB_STEP_SUMMARY"
+            sed 's/^/  - /' targets.txt
+          else
+            echo "has_targets=false" >> "$GITHUB_OUTPUT"
+            {
+              echo "### ⏭️ Domain audit skipped"
+              echo
+              echo "No targets are configured, so there is nothing to audit."
+              echo
+              echo "Add a \`domains.txt\` at the repository root (copy \`domains.example.txt\`),"
+              echo "or run this workflow manually with the \`domains\` input."
+            } >> "$GITHUB_STEP_SUMMARY"
+            echo "::notice title=Domain audit skipped::No domains.txt and no 'domains' input — nothing to audit."
+          fi
+
+      - name: Upload target list
+        if: steps.resolve.outputs.has_targets == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: secaudit-targets
+          path: targets.txt
+          retention-days: 1
+          if-no-files-found: error
+
+  # ---------------------------------------------------------------------------
+  # 3. Audit the configured domains (only when there is something to audit).
   # ---------------------------------------------------------------------------
   audit:
     name: Audit domains
-    needs: quality
+    needs: [quality, preflight]
+    if: needs.preflight.outputs.has_targets == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 25
     steps:
@@ -95,33 +194,26 @@ jobs:
           python -m pip install --upgrade pip
           pip install .
 
-      - name: Resolve target list
-        shell: bash
-        run: |
-          set -euo pipefail
-          if [ -n "${{ github.event.inputs.domains }}" ]; then
-            tr ',' '\n' <<< "${{ github.event.inputs.domains }}" \
-              | sed 's/^[[:space:]]*//; s/[[:space:]]*$//' \
-              | grep -v '^$' > domains.txt
-          fi
-          if [ ! -s domains.txt ]; then
-            echo "::error::No targets. Add domains.txt or pass the 'domains' input."
-            exit 1
-          fi
-          echo "Auditing:"; sed 's/^/  - /' domains.txt
+      - name: Download target list
+        uses: actions/download-artifact@v4
+        with:
+          name: secaudit-targets
+          path: .
 
       - name: Run audit
         # The step fails on purpose when the quality gate is not met; the
         # reporting steps below still run so the team always gets the evidence.
         run: |
+          echo "Auditing ${{ needs.preflight.outputs.count }} target(s):"
+          sed 's/^/  - /' targets.txt
           secaudit \
-            -iL domains.txt \
+            -iL targets.txt \
             --nameserver 1.1.1.1 \
             --nameserver 8.8.8.8 \
             -c 15 \
             --timeout 10 \
-            --fail-under "$FAIL_UNDER" \
-            --fail-on-severity critical \
+            --fail-under "${FAIL_UNDER:-85}" \
+            --fail-on-severity "${FAIL_ON_SEVERITY:-critical}" \
             -oJ reports/audit.json \
             -oS reports/secaudit.sarif \
             -oM reports/audit.md \

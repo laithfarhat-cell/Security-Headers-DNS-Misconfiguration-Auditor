@@ -1,0 +1,15 @@
+# secaudit target list
+#
+# Copy this file to `domains.txt` (git-ignored? no — commit it if you like) and
+# replace the commented examples with the domains you own:
+#
+#     cp domains.example.txt domains.txt
+#
+# Then edit domains.txt and uncomment / add one domain per line. Blank lines,
+# `#` comments and full URLs are accepted; everything is de-duplicated.
+#
+# --- example targets -------------------------------------------------------
+# example.com
+# www.example.com
+# https://api.example.com/health
+# status.example.com   # sub-domains are audited individually for dangling CNAMEs

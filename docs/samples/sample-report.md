@@ -1,7 +1,7 @@
 # 🛡️ Security Headers & DNS Misconfiguration Audit
 
-**Generated:** 2026-11-15 20:24 UTC  
-**Tool:** `secaudit` v1.0.0  
+**Generated:** 2026-11-15 20:35 UTC  
+**Tool:** `secaudit` v1.0.1  
 **Targets:** 1  
 **Overall score:** **66.4/100** (grade **D**)
 

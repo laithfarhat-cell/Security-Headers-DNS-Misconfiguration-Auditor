@@ -56,4 +56,4 @@ LABEL org.opencontainers.image.title="secaudit" \
       org.opencontainers.image.description="Security Headers, TLS and DNS/E-mail misconfiguration auditor" \
       org.opencontainers.image.source="https://github.com/laithfarhat-cell/Security-Headers-DNS-Misconfiguration-Auditor" \
       org.opencontainers.image.licenses="MIT" \
-      org.opencontainers.image.version="1.0.0"
+      org.opencontainers.image.version="1.0.1"

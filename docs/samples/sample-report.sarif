@@ -7,7 +7,7 @@
         "driver": {
           "name": "secaudit",
           "fullName": "secaudit — Security Headers & DNS Misconfiguration Auditor",
-          "semanticVersion": "1.0.0",
+          "semanticVersion": "1.0.1",
           "informationUri": "https://github.com/laithfarhat-cell/Security-Headers-DNS-Misconfiguration-Auditor",
           "rules": [
             {
@@ -380,8 +380,8 @@
       "invocations": [
         {
           "executionSuccessful": true,
-          "startTimeUtc": "2026-11-15T20:24:36Z",
-          "endTimeUtc": "2026-11-15T20:24:36Z",
+          "startTimeUtc": "2026-11-15T20:35:51Z",
+          "endTimeUtc": "2026-11-15T20:35:51Z",
           "toolExecutionNotifications": []
         }
       ],
